@@ -1,0 +1,71 @@
+---
+title: "Tổng quan Skills"
+description: "13 skill phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
+icon: "list"
+---
+
+VAS đóng gói **13 project skill** + **1 skill bên thứ ba** (`$remotion-best-practices`). Mỗi skill là 1 module độc lập có file `SKILL.md` riêng — agent đọc khi cần, user không phải nhớ.
+
+## Asset & lập kế hoạch
+
+<Columns cols={2}>
+  <Card title="asset-semantic-extractor" icon="image" href="/skills/asset-semantic-extractor">
+    Mô tả mỗi ảnh/video raw chứa gì.
+  </Card>
+  <Card title="semantic-asset-mapper" icon="link" href="/skills/semantic-asset-mapper">
+    Chọn asset nào cho scene nào.
+  </Card>
+  <Card title="video-creative-planner" icon="lightbulb" href="/skills/video-creative-planner">
+    Brief → script + scene + overlay.
+  </Card>
+  <Card title="video-design-spec-builder" icon="palette" href="/skills/video-design-spec-builder">
+    Trích phong cách từ video mẫu.
+  </Card>
+  <Card title="shot-coverage-planner" icon="scissors" href="/skills/shot-coverage-planner">
+    Bù shot thiếu bằng cutaway / slowdown.
+  </Card>
+  <Card title="fal-image-generator" icon="wand-magic-sparkles" href="/skills/fal-image-generator">
+    Sinh ảnh AI bằng fal.ai, lock nhân vật.
+  </Card>
+</Columns>
+
+## Audio
+
+<Columns cols={2}>
+  <Card title="ausynclab-voice" icon="microphone" href="/skills/ausynclab-voice">
+    Sinh narration TTS.
+  </Card>
+  <Card title="audio-deduplicate" icon="scissors" href="/skills/audio-deduplicate">
+    Khử lặp lời nói trong audio.
+  </Card>
+  <Card title="word-timestamps-extractor" icon="closed-captioning" href="/skills/word-timestamps-extractor">
+    Transcribe + timestamp từng từ.
+  </Card>
+</Columns>
+
+## Render & quản lý job
+
+<Columns cols={2}>
+  <Card title="video-render-plan-builder" icon="list-check" href="/skills/video-render-plan-builder">
+    Sinh edit decision list (EDL).
+  </Card>
+  <Card title="video-renderer" icon="film" href="/skills/video-renderer">
+    Render TOML thành MP4.
+  </Card>
+  <Card title="video-job-manager" icon="folder-tree" href="/skills/video-job-manager">
+    Quản lý folder `jobs/<id>/`.
+  </Card>
+  <Card title="video-production-orchestrator" icon="diagram-project" href="/skills/video-production-orchestrator">
+    Điều phối toàn pipeline A → Z.
+  </Card>
+</Columns>
+
+## Cách invoke
+
+Trong chat với Cursor/Codex/Claude Code, gõ ký hiệu `$<skill-name>` để gợi ý agent load skill đó. Ví dụ:
+
+```text
+$video-creative-planner — viết kịch bản TikTok 45s về buổi sáng yên tĩnh
+```
+
+Agent sẽ tự load `SKILL.md` tương ứng và làm theo. Không cần biết chi tiết bên trong.

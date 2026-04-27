@@ -1,63 +1,355 @@
 ---
-title: "Sử dụng cơ bản"
-description: "Workflow drop file → search → status sau khi cài"
+title: "Use case phổ biến"
+description: "5 kịch bản tạo video, mỗi kịch bản 1 prompt copy-paste, đủ chi tiết để chạy ngay"
 icon: "play"
 ---
 
-Sau khi cài đặt xong, có 4 use case người mới hay làm:
+Sau khi cài xong (`Install.command` / `Install.bat` / cài tay theo [Quickstart](/quickstart)), mở folder bằng IDE bạn dùng (`cursor .`, `codex`, hoặc `claude`) rồi paste prompt tương ứng vào chat.
+
+<Tip>
+  **Convention chung**: agent tự tạo `jobs/<id>/` mới khi bạn nói "tạo video" hoặc "phân tích video mẫu". Job ID format: `YYYY-MM-DD_<seq>_<slug>`. Mọi artefact (creative plan, audio, render plan, MP4) đều nằm trong cùng folder job đó.
+</Tip>
+
+---
+
+## Use case 1 — Chỉ phân tích video mẫu
+
+**Kết quả**: 1 file VDS (Video Design Spec) `.md` mô tả phong cách video mẫu — màu, mood, nhịp, motion, overlay, hook pattern. Tái dùng cho mọi job sau này.
+
+**Khi nào dùng**: bạn có 1 video reference đẹp (TikTok của ai đó, ad mẫu, brand video) và muốn "lưu phong cách" để bắt chước sau.
+
+**Prerequisites**: `GEMINI_API_KEY` trong `.env` (Gemini Vision phân tích video).
+
+**Prompt copy-paste**:
+
+```text
+$video-design-spec-builder — phân tích /path/to/sample.mp4 và sinh
+Video Design Spec. Tạo job mới tên "Sample VDS - <ngắn gọn>".
+Lưu VDS vào jobs/<id>/source/vds.md.
+Liệt kê style DNA chính, motion pattern, hook formula.
+```
+
+**Bước agent tự chạy**:
+
+1. `$video-job-manager create-job` → tạo `jobs/<id>/`.
+2. Copy `sample.mp4` vào `jobs/<id>/input/reference/`.
+3. `$video-design-spec-builder` chạy Gemini Vision pass trên video → trích DNA.
+4. Ghi `jobs/<id>/source/vds.md` (bám template VDS chuẩn).
+
+**Output**:
+
+```text
+jobs/<id>/source/vds.md          # tái dùng cho job tiếp theo
+jobs/<id>/source/vds_analysis.toml  # raw data Gemini trả
+```
+
+<Tip>
+  Sau khi có VDS, dùng `--vds-path` cho mọi `$video-creative-planner` và `$video-render-plan-builder` ở các job tiếp theo để giữ phong cách nhất quán.
+</Tip>
+
+---
+
+## Use case 2 — Chỉ de-dup audio
+
+**Kết quả**: 1 file audio sạch, không lặp từ/cụm/câu liên tiếp.
+
+**Khi nào dùng**: bạn ghi narration thô (đôi khi đọc lại 2–3 lần một câu để chọn take tốt nhất) và muốn loại bản dư trước khi đưa vào pipeline.
+
+**Prerequisites**: `OPENAI_API_KEY` trong `.env` (script `$word-timestamps-extractor` hiện dùng Whisper/OpenAI transcription để lấy timestamp cấp từ).
+
+**Prompt copy-paste**:
+
+```text
+$audio-deduplicate — làm sạch /path/to/raw.wav (hoặc raw.mp3).
+- Xóa từ lặp liên tiếp + câu lặp liên tiếp.
+- Giữ lại bản đọc cuối cùng cho mỗi câu lặp.
+- Đồng thời ghi log word timestamps để verify.
+```
+
+**Bước agent tự chạy**:
+
+1. `$word-timestamps-extractor` trích xuất transcript có timestamp cấp câu/từ từ file audio. Script hiện chạy `whisper-1` (hoặc API transcription tương thích) → TOML word-level timestamps.
+2. `$audio-deduplicate` đọc TOML, detect cụm lặp consecutive (cùng từ/2-gram/3-gram trong window 5s), lập danh sách timeline cần cắt.
+3. Dùng `ffmpeg` cắt và ghép → file audio sạch.
+4. Ghi log diff (đoạn đã xóa, độ dài tiết kiệm).
+
+**Output**:
+
+```text
+audio sạch                                    # file đã de-dup
+raw_transcript.toml                           # word timestamps gốc
+dedupe_log.toml                               # đoạn đã cắt + lý do
+```
+
+<Warning>
+  Chỉ xóa lặp **liên tiếp** trong window ngắn (~5s). Không xóa lặp ngữ nghĩa (paraphrase) — nếu cần loại đó, nói rõ "loại cả lặp ý nghĩa" để agent dùng LLM pass thay vì rule-based.
+</Warning>
+
+---
+
+## Use case 3 — Tạo video từ **audio có sẵn**, dùng asset có sẵn
+
+**Kết quả**: video MP4 9:16 (hoặc 16:9 / 1:1) hoàn chỉnh, narration là audio bạn có, hình từ folder asset của bạn.
+
+**Khi nào dùng**: bạn đã ghi narration (hoặc TTS sẵn) + có folder ảnh/video raw (chụp/quay) → muốn dựng nhanh.
+
+**Prerequisites**:
+
+- `OPENAI_API_KEY` (transcribe + embedding) + `GEMINI_API_KEY` (asset semantic).
+- Watcher asset-index đang chạy (chạy `setup/Status.command` để verify) — nếu chưa, drop file vào `raw_assets/` cũng được, agent sẽ tự fallback Gemini Vision pass.
+
+**Bước 1 — Chuẩn bị folder**:
+
+```text
+jobs/<id>/input/audio/narration.wav        # audio của bạn
+jobs/<id>/input/raw_assets/images/*.jpg    # ảnh raw
+jobs/<id>/input/raw_assets/videos/*.mp4    # video raw (optional)
+```
+
+Tạo job bằng prompt:
+
+```text
+$video-job-manager — tạo job mới "Morning routine ad", platform tiktok,
+duration 45s, vi
+```
+
+Sau đó copy audio + asset vào folder vừa tạo.
+
+**Bước 2 — Prompt chạy pipeline**:
+
+```text
+$video-production-orchestrator — chạy pipeline cho job <id>:
+- audio đã có ở jobs/<id>/input/audio/narration.wav (skip TTS)
+- raw assets ở jobs/<id>/input/raw_assets/
+- target: TikTok 9:16, ngôn ngữ vi
+- VDS: jobs/<id>/source/vds.md (nếu có; bỏ qua nếu chưa có)
+Yêu cầu: render MP4 final ở jobs/<id>/output/final.mp4
+```
+
+**Bước agent tự chạy**:
+
+1. `$word-timestamps-extractor` trích xuất transcript timing từ `narration.wav` → `transcript.toml`.
+2. `$video-creative-planner` viết creative plan **dựa trên transcript thực** (không bịa script mới) + scene intent từ ngữ cảnh asset-index.
+3. `$asset-semantic-extractor` (hoặc query asset-index DB) → `asset_semantics.toml`.
+4. `$semantic-asset-mapper` map mỗi câu/scene → 1 asset cụ thể.
+5. `$shot-coverage-planner` bù shot thiếu (cutaway, slowdown, hold + Ken Burns).
+6. `$video-render-plan-builder` ghép tất cả → `render_plan.toml`.
+7. `$video-renderer` (Remotion) render → `output/final.mp4`.
+
+**Output**: `jobs/<id>/output/final.mp4` + tất cả TOML intermediate (audit được).
+
+---
+
+## Use case 4 — Tạo video từ **text script**, dùng asset có sẵn
+
+**Kết quả**: video MP4 hoàn chỉnh, narration sinh bằng TTS, hình từ folder asset của bạn.
+
+**Khi nào dùng**: bạn có sẵn nội dung muốn nói (script tiếng Việt/Anh) + folder asset, không có audio.
+
+**Prerequisites**:
+
+- `OPENAI_API_KEY`, `GEMINI_API_KEY`, `AUSYNCLAB_API_KEY` trong `.env`.
+
+**Bước 1 — Chuẩn bị folder**:
+
+```text
+jobs/<id>/input/raw_assets/images/*.jpg
+jobs/<id>/input/raw_assets/videos/*.mp4
+jobs/<id>/source/script.md              # script tiếng Việt thuần text
+```
+
+`script.md` có thể chỉ là 1 đoạn paragraph — agent sẽ tự chia câu/scene.
+
+**Bước 2 — Prompt chạy pipeline**:
+
+```text
+$video-production-orchestrator — chạy pipeline cho job <id>:
+- script: jobs/<id>/source/script.md
+- raw assets: jobs/<id>/input/raw_assets/
+- target: TikTok 9:16, vi, mood reflective
+- voice: chọn giọng nữ trẻ phù hợp narration script này
+- VDS: jobs/<id>/source/vds.md (nếu có)
+Yêu cầu render MP4 final ở jobs/<id>/output/final.mp4
+```
+
+**Bước agent tự chạy**:
+
+1. `$video-creative-planner` đọc `script.md` + asset semantic → tạo creative plan + scene intent.
+2. `$ausynclab-voice select-voice` rank giọng theo `tone` + `delivery` + `language`. Chốt 1 giọng → `$ausynclab-voice generate-speech` render `narration.wav`.
+3. `$word-timestamps-extractor` trích xuất lại timing từ `narration.wav` (để có timestamp chính xác — TTS không trả timestamp đủ tin cậy).
+4. Tiếp tục như Use case 3 (mapper → coverage planner → render plan → renderer).
+
+**Output**:
+
+```text
+jobs/<id>/input/audio/narration.wav         # TTS sinh
+jobs/<id>/source/voice_selection.toml       # giọng đã chọn + lý do
+jobs/<id>/output/final.mp4
+```
+
+<Tip>
+  Nếu sau khi nghe TTS bạn muốn đổi giọng: chạy lại `$ausynclab-voice generate-speech --voice-id <id_khác>` rồi rerun từ bước transcribe. Skill **idempotent** — chỉ rerun stage cần.
+</Tip>
+
+---
+
+## Use case 5 — Tạo video từ **audio có sẵn**, dùng **asset AI** (cố định nhân vật)
+
+**Kết quả**: video MP4 hoàn chỉnh, narration là audio bạn có, mọi hình do `$fal-image-generator` sinh ra (lock 1 nhân vật xuyên suốt).
+
+**Khi nào dùng**: bạn có audio + ý tưởng kịch bản nhưng **không có raw footage**, muốn AI sinh ảnh từng scene và giữ nhất quán 1 nhân vật chính.
+
+**Prerequisites**:
+
+- `OPENAI_API_KEY`, `GEMINI_API_KEY`, `FAL_API_KEY` trong `.env`.
+- 1 ảnh portrait sạch của nhân vật chính (PNG/JPG, ưu tiên ảnh chính diện) làm reference image. Nếu không có, agent dùng prompt thuần (model `nano-banana` vẫn lock được trong cùng phiên nhưng độ ổn định kém hơn).
+
+**Bước 1 — Chuẩn bị folder**:
+
+```text
+jobs/<id>/input/audio/narration.wav
+jobs/<id>/input/reference/character_main.jpg     # ảnh nhân vật để lock
+```
+
+`raw_assets/` để **rỗng** — pipeline sẽ tự sinh ảnh AI vào `raw_assets/images/ai_generated/`.
+
+**Bước 2 — Prompt chạy pipeline**:
+
+```text
+$video-production-orchestrator — chạy pipeline cho job <id>:
+- audio đã có ở jobs/<id>/input/audio/narration.wav (skip TTS)
+- raw assets: TRỐNG → mọi shot dùng AI image
+- character reference: jobs/<id>/input/reference/character_main.jpg
+- target: TikTok 9:16, vi, mood reflective
+
+Pipeline đặc biệt:
+1. $word-timestamps-extractor extract transcript timing from audio
+2. $video-creative-planner viết scene intent, đánh dấu MỌI scene là asset_requirements=["ai_generated"]
+3. $fal-image-generator sinh ảnh cho từng scene:
+   - model fal-ai/nano-banana
+   - reference: character_main.jpg (lock nhân vật)
+   - output: jobs/<id>/input/raw_assets/images/ai_generated/
+4. $asset-semantic-extractor index ảnh AI vừa sinh
+5. $semantic-asset-mapper map scene → ảnh AI
+6. $shot-coverage-planner + $video-render-plan-builder + $video-renderer
+```
+
+**Bước agent tự chạy** (chi tiết bước 3):
+
+```bash
+python skills/fal_image_generator/scripts/fal_image_generator.py generate \
+  --env-file .env \
+  --from-creative-plan jobs/<id>/source/creative_plan.toml \
+  --reference-images jobs/<id>/input/reference/character_main.jpg \
+  --vds-path jobs/<id>/source/vds.md \
+  --output-dir jobs/<id>/input/raw_assets/images/ai_generated \
+  --report-toml jobs/<id>/source/ai_image_generation.toml
+```
+
+Mỗi prompt được build từ `scene_intents[].visual_intent` + `mood` + `preferred_shot_types` + style hint từ VDS, **kèm** ảnh reference → `nano-banana` giữ identity nhân vật.
+
+**Output**:
+
+```text
+jobs/<id>/input/raw_assets/images/ai_generated/sc_01_1_<hash>.png
+jobs/<id>/input/raw_assets/images/ai_generated/sc_02_1_<hash>.png
+...
+jobs/<id>/source/ai_image_generation.toml      # log generation (idempotent rerun)
+jobs/<id>/output/final.mp4
+```
+
+<Warning>
+  Chi phí ước tính: `nano-banana` ~$0.039/ảnh. Video 45s thường có 8–14 scene → $0.30–$0.55/lần. Skill sẽ cảnh báo nếu sinh > 20 ảnh/lần.
+</Warning>
+
+<Tip>
+  Muốn ảnh có **2 nhân vật** (vd nam + nữ)? Truyền nhiều reference: `--reference-images char_male.jpg,char_female.jpg`. `nano-banana` hỗ trợ multi-reference; trong prompt mô tả ai làm gì.
+</Tip>
+
+<Tip>
+  Đổi model sang `fal-ai/flux-pro` cho chất lượng cao hơn (không lock nhân vật, nhưng style đẹp hơn). Set `--model fal-ai/flux-pro`.
+</Tip>
+
+---
+
+## Skill đơn lẻ — gọi từng phần
+
+Khi chỉ cần 1 stage, gọi trực tiếp skill không qua orchestrator:
 
 <Columns cols={2}>
-  <Card title="Index asset" icon="upload" href="#index-asset">
-    Thả file vào `raw_assets/` — watcher tự phân tích và lưu vào DB.
+  <Card title="Trích phong cách từ video mẫu" icon="palette" href="/skills/video-design-spec-builder">
+    `$video-design-spec-builder — phân tích /path/to/sample.mp4`
   </Card>
-  <Card title="Tìm asset" icon="magnifying-glass" href="/usage/search">
-    Truy vấn tiếng Việt qua `Search.command` hoặc CLI.
+
+  <Card title="Viết kịch bản từ brief" icon="lightbulb" href="/skills/video-creative-planner">
+    `$video-creative-planner — viết TikTok 45s reflective`
   </Card>
-  <Card title="Kiểm tra trạng thái" icon="heart-pulse" href="/usage/status">
-    Xem watcher pid, processed_count, last_error.
+
+  <Card title="Sinh narration TTS" icon="microphone" href="/skills/ausynclab-voice">
+    `$ausynclab-voice — chọn giọng phù hợp creative plan và render audio`
   </Card>
-  <Card title="Verify sau cài" icon="check-double" href="/usage/verify">
-    Test sạch để chắc chắn pipeline hoạt động.
+
+  <Card title="Khử lặp audio" icon="scissors" href="/skills/audio-deduplicate">
+    `$audio-deduplicate — làm sạch jobs/<id>/input/audio/raw.wav`
+  </Card>
+
+  <Card title="Sinh ảnh AI" icon="wand-magic-sparkles" href="/skills/fal-image-generator">
+    `$fal-image-generator — sinh ảnh cho creative plan, lock nhân vật ref.jpg`
+  </Card>
+
+  <Card title="Index folder asset" icon="database" href="/usage/search">
+    Drop file vào `raw_assets/` → watcher tự index trong ~10s.
   </Card>
 </Columns>
 
-## Index asset
+## Quản lý job & asset
 
-Drop file vào một trong 3 folder:
+<Columns cols={2}>
+  <Card title="Tạo job mới" icon="folder-plus">
+    ```text
+    $video-job-manager — tạo job mới
+    "Morning routine ad", platform tiktok, 45s, vi
+    ```
+  </Card>
 
-- `raw_assets/images/` — JPG, PNG, WEBP, GIF…
-- `raw_assets/videos/` — MP4, MOV, MKV, WEBM…
-- `raw_assets/audio/` — WAV, MP3, M4A, FLAC…
+  <Card title="Tìm asset bằng tiếng Việt" icon="magnifying-glass" href="/usage/search">
+    Double-click `setup/Search.command`, gõ truy vấn (vd `phong cảnh núi tuyết`). [Xem chi tiết →](/usage/search)
+  </Card>
 
-Watcher debounce 1.5s rồi:
+  <Card title="Kiểm tra watcher" icon="heart-pulse" href="/usage/status">
+    Double-click `setup/Status.command` để xem `pid`, `processed_count`, `last_error`. [Xem chi tiết →](/usage/status)
+  </Card>
 
-1. Hash file (SHA-256) — nếu đã có trong DB, skip.
-2. Gửi qua analyzer phù hợp (Gemini Vision cho image/video, Gemini multimodal cho audio).
-3. Embed mô tả qua OpenAI `text-embedding-3-small` (1536 chiều).
-4. Lưu vào `.asset_index/index.db`.
+  <Card title="Verify pipeline lần đầu" icon="check-double" href="/usage/verify">
+    3 bước: drop file ảnh test → đợi watcher → search khớp keyword. [Xem chi tiết →](/usage/verify)
+  </Card>
+</Columns>
+
+## Tips chung
 
 <Tip>
-  Mỗi file chỉ tốn LLM call **1 lần duy nhất**. File đổi tên hoặc di chuyển không tốn thêm vì hash không đổi.
+  **Ký hiệu `$<skill-name>`** trong chat → agent hiểu là yêu cầu load skill đó. Không cần biết chi tiết script bên trong.
 </Tip>
 
-## Workflow tổng quan
+<Tip>
+  **Đặt brief càng cụ thể càng tốt** — platform, thời lượng, ngôn ngữ, mood, hook, CTA. Ví dụ: `"TikTok 45s, tiếng Việt, mood reflective, hook về áp lực công việc, CTA download app"`.
+</Tip>
 
-```mermaid
-flowchart LR
-    drop[Drop file vào<br/>raw_assets/] --> watcher[Watcher debounce 1.5s]
-    watcher --> hash{Hash đã có?}
-    hash -->|Có| skip[Skip]
-    hash -->|Chưa| analyze[Gemini analyzer]
-    analyze --> embed[OpenAI embedding]
-    embed --> store[(SQLite + sqlite-vec)]
-    store --> search[Search command]
-    store --> skill[Skills query]
-```
+<Tip>
+  **Idempotent rerun**: mọi skill đều ghi TOML output có thể tái chạy. Nếu output đã tồn tại với hash khớp, skill skip — tiết kiệm quota Gemini/OpenAI/fal.
+</Tip>
 
-## Bước tiếp theo
+<Tip>
+  Khi không chắc skill nào phù hợp, gõ thẳng yêu cầu bằng tiếng Việt — agent đọc `AGENTS.md` và tự chọn skill. Ví dụ: `"dựng video TikTok 45s từ video mẫu /path/sample.mp4 và folder raw_assets/"`
+</Tip>
 
-Đọc lần lượt:
+## Reference khác
 
-1. [Tìm asset](/usage/search) — chi tiết Search.command + CLI search.
-2. [Kiểm tra trạng thái](/usage/status) — đọc state.json + service status.
-3. [Verify sau cài](/usage/verify) — test sạch.
+<Columns cols={2}>
+  <Card title="Toàn bộ skill" icon="cubes" href="/skills/index">
+    13 skill + 1 third-party.
+  </Card>
+  <Card title="Nâng cao: Asset Index" icon="database" href="/asset-index/architecture">
+    Kiến trúc Asset Index, file runtime, CLI, idempotency.
+  </Card>
+</Columns>

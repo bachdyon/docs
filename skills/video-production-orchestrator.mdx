@@ -1,0 +1,38 @@
+---
+title: "video-production-orchestrator"
+description: "Điều phối toàn pipeline video A → Z"
+icon: "diagram-project"
+---
+
+<Info>
+  **Skill ID**: `$video-production-orchestrator` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_production_orchestrator/SKILL.md)
+</Info>
+
+## Mục đích
+
+Skill "tổng chỉ huy" — gọi đúng skill, đúng thứ tự, từ video mẫu + brief + raw asset cho đến video MP4 cuối cùng. Tự kiểm tra cổng thoát giữa các bước (artifact tồn tại, duration phù hợp, asset đủ...) và đánh dấu stage stale khi input thay đổi.
+
+Skill này **điều phối** chứ không thay thế công việc chuyên môn của các skill bên dưới.
+
+## Khi nào được invoke
+
+- User yêu cầu "dựng cho tôi 1 video TikTok đầy đủ từ video mẫu này + raw asset này".
+- Regenerate / preview / sản xuất lại 1 job đã có.
+- Khi user không muốn gọi từng skill thủ công.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-production-orchestrator — chạy full pipeline cho job hiện tại,
+  reference: /path/to/sample.mp4
+  raw assets: jobs/<id>/input/raw_assets/
+  brief: "TikTok 45s reflective về buổi sáng yên tĩnh"
+```
+
+Agent sẽ chạy lần lượt: job-manager → design-spec → creative-planner → voice → transcript → asset-semantics → semantic-mapper → coverage-planner → render-plan → renderer.
+
+<Info>
+  Khi bất kỳ stage nào fail, orchestrator dừng và báo user, **không** che lỗi bằng cách skip stage.
+</Info>

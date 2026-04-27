@@ -119,16 +119,15 @@ icon: "apple"
     open -e .env
     ```
 
-    Điền vào 4 giá trị:
+    Không điền key theo ví dụ copy rời trong trang này để tránh lệch cấu hình.
 
-    ```env
-    OPENAI_API_KEY=sk-...
-    GEMINI_API_KEY=...
-    AUSYNCLAB_API_KEY=...
-    AUSYNCLAB_VOICE_ID=...
-    ```
+    **Hãy mở [Cấu hình API keys](/configuration/env) và làm đúng theo trang đó** (nguồn chuẩn duy nhất, luôn cập nhật).
 
-    Cách lấy từng key xem ở [Cấu hình API keys](/configuration/env) — có link tạo key miễn phí cho từng dịch vụ.
+    Trang đó có đầy đủ:
+    - Biến nào bắt buộc / tuỳ chọn
+    - Cách tạo từng key
+    - Ví dụ `.env` mới nhất
+    - Cách verify key hoạt động
 
     <Warning>
       File `.env` chứa "mật khẩu" — không share, không commit lên Git public. Repo đã có sẵn `.gitignore` để tránh accident, nhưng vẫn nên cẩn thận.

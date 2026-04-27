@@ -17,7 +17,9 @@
             "group": "Bắt đầu",
             "pages": [
               "index",
-              "quickstart"
+              "quickstart",
+              "glossary",
+              "features"
             ]
           },
           {
@@ -47,15 +49,29 @@
           {
             "group": "Skills",
             "pages": [
-              "skills/audio-deduplicate"
+              "skills/index",
+              "skills/video-production-orchestrator",
+              "skills/video-job-manager",
+              "skills/video-design-spec-builder",
+              "skills/video-creative-planner",
+              "skills/asset-semantic-extractor",
+              "skills/semantic-asset-mapper",
+              "skills/shot-coverage-planner",
+              "skills/fal-image-generator",
+              "skills/ausynclab-voice",
+              "skills/word-timestamps-extractor",
+              "skills/audio-deduplicate",
+              "skills/video-render-plan-builder",
+              "skills/video-renderer"
             ]
           },
           {
-            "group": "Asset Index nâng cao",
+            "group": "Nâng cao",
             "pages": [
+              "architecture",
               "asset-index/architecture",
-              "asset-index/cli",
               "asset-index/files",
+              "asset-index/cli",
               "asset-index/idempotency",
               "asset-index/cross-platform",
               "asset-index/extending"

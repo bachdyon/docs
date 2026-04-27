@@ -1,0 +1,29 @@
+---
+title: "word-timestamps-extractor"
+description: "Trích xuất transcript + timestamp từng từ"
+icon: "closed-captioning"
+---
+
+<Info>
+  **Skill ID**: `$word-timestamps-extractor` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/word_timestamps_extractor/SKILL.md)
+</Info>
+
+## Mục đích
+
+Lấy file audio narration → trả về transcript có timestamp **cấp câu + cấp từ** dùng cho subtitle, dedupe, và căn cảnh asset.
+
+## Khi nào được invoke
+
+- Sau khi đã có audio voice (từ `$ausynclab-voice` hoặc upload thủ công).
+- Trước `$semantic-asset-mapper` và `$video-render-plan-builder` — cả 2 đều cần timeline word-level.
+- User muốn đổi cách render subtitle / đổi audio gốc.
+
+## Cách sử dụng
+
+Cần `OPENAI_API_KEY` trong `.env`. Gõ:
+
+```text
+$word-timestamps-extractor — extract word timestamps from source/voice.wav, language vi
+```
+
+Agent gọi Whisper/OpenAI transcription qua script, normalize output, ghi vào `source/transcript_word_level.toml`.

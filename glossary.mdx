@@ -1,0 +1,69 @@
+---
+title: "Thuật ngữ"
+description: "Các từ viết tắt và khái niệm dùng trong VAS — đọc trước khi vào Tính năng hoặc Skills"
+icon: "book"
+---
+
+Trang này gom **thuật ngữ thường gặp** trong tài liệu và trong chat với agent. Tên file, biến môi trường, lệnh CLI giữ nguyên tiếng Anh; phần giải thích bằng tiếng Việt.
+
+## Hệ thống & cách làm việc
+
+| Thuật ngữ | Giải thích ngắn |
+| --- | --- |
+| **VAS** | *Video Automator Skills* — repo kỹ năng (`skills/<name>/`) để agent chạy pipeline sản xuất video ngắn. |
+| **Skill** | Một bước pipeline đóng gói trong `SKILL.md`. Trong chat thường gõ `$<tên-kebab>` (vd. `$video-job-manager`) để agent load đúng skill. |
+| **Agent** | IDE/agent (Cursor, Codex, Claude Code…) đọc `AGENTS.md` và các `SKILL.md` rồi thực hiện từng bước thay bạn. |
+| **Pipeline** | Chuỗi bước cố định: job → VDS → creative plan → voice → (tùy chọn: dedupe audio) → transcript → (tùy chọn: ảnh AI) → asset semantics → semantic map → shot coverage → render plan → render MP4. Chi tiết và sơ đồ: [Kiến trúc](/architecture). |
+
+## Job & thư mục
+
+| Thuật ngữ | Giải thích ngắn |
+| --- | --- |
+| **Job** | Một lần sản xuất cụ thể: mọi input và file trung gian nằm trong `jobs/<job_id>/`. |
+| **`job_id`** | Định danh thư mục job (vd. `2026-04-25_001_morning-routine-ad`). |
+| **`raw_assets/`** | Ảnh, video, audio nguồn do bạn thả vào (toàn repo hoặc trong `jobs/<id>/input/raw_assets/`). |
+| **`input/` / `source/` / `output/`** | Trong mỗi job: `input` = file đưa vào; `source` = artefact trung gian (TOML, VDS…); `output` = MP4, preview, báo cáo render. |
+| **Stale** | Artefact được đánh dấu *lỗi thời* vì input phía trước đã đổi — cần chạy lại các bước sau. |
+
+## Asset & tìm kiếm
+
+| Thuật ngữ | Giải thích ngắn |
+| --- | --- |
+| **Asset Index** | Hệ thống nền (watcher + SQLite + vector) phân tích và lập chỉ mục nội dung file trong `raw_assets/`. |
+| **Watcher** | Tiến trình chạy nền theo dõi thư mục, tự index file mới/sửa (xem [Trạng thái watcher](/usage/status)). |
+| **Semantic index / `asset_semantics.toml`** | Mô tả *mỗi file chứa gì* (chủ thể, mood, cảnh…) để mapper và planner dùng, không cần mở lại từng media. |
+| **Embedding** | Vector số hoá ý nghĩa text/ảnh để so khớp truy vấn tiếng Việt với asset (OpenAI `text-embedding-3-small`). |
+
+## Kế hoạch & nội dung
+
+| Thuật ngữ | Giải thích ngắn |
+| --- | --- |
+| **VDS** | *Video Design Specification* — “DNA phong cách” trích từ video mẫu (`vds.md`): màu, nhịp, motion, chữ. |
+| **Creative plan / `creative_plan.toml`** | Kịch bản, ý định từng cảnh (`scene_intent`), overlay, yêu cầu asset. |
+| **Scene intent** | Một đoạn timeline + ý định hình ảnh/âm thanh cho cảnh đó (thường khớp với câu trong transcript). |
+| **Transcript (word-level)** | Bản ghi lời thoại kèm timestamp từng từ — dùng cho subtitle, dedupe audio, căn chỉnh với asset. |
+| **Semantic mapping / `semantic_mapping.toml`** | Bảng “cảnh nào dùng file media nào”, có lý do chọn và khoảng thời gian cắt. |
+| **Shot coverage** | Bù thiếu shot (cutaway, slowdown, hold + Ken Burns) khi một asset không đủ dài hoặc lặp quá nhiều. |
+
+## Render & công cụ
+
+| Thuật ngữ | Giải thích ngắn |
+| --- | --- |
+| **Render plan / `render_plan.toml`** | EDL dạng TOML: crop, thời lượng, overlay, transition, audio — input cho bước render. |
+| **EDL** | *Edit decision list* — danh sách quyết định dựng hình (clip nào, từ giây nào đến giây nào, hiệu ứng gì). |
+| **Remotion** | Framework render video bằng React; project job-scoped thường nằm trong `jobs/<id>/remotion/`. |
+| **`$remotion-best-practices`** | Skill bên thứ ba (không nằm trong `skills/` repo) — quy tắc viết Remotion chuẩn khi chỉnh renderer. |
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Kiến trúc tổng quan" icon="diagram-project" href="/architecture">
+    Dây chuyền làm video, file trung gian trong job, và asset index chạy nền.
+  </Card>
+  <Card title="Tính năng" icon="sparkles" href="/features">
+    Tổng quan nhóm skill và tích hợp IDE.
+  </Card>
+  <Card title="Tổng quan Skills" icon="cubes" href="/skills/index">
+    Danh sách skill + cách gọi `$skill-name`.
+  </Card>
+</Columns>

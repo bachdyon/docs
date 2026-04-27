@@ -1,0 +1,29 @@
+---
+title: "ausynclab-voice"
+description: "Sinh narration TTS bằng AusyncLab"
+icon: "microphone"
+---
+
+<Info>
+  **Skill ID**: `$ausynclab-voice` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/ausynclab_voice/SKILL.md)
+</Info>
+
+## Mục đích
+
+Biến kịch bản voiceover (text) thành file audio narration (`.wav` / `.mp3`) bằng API AusyncLab — đa giọng nam/nữ, tiếng Việt 2 miền.
+
+## Khi nào được invoke
+
+- Sau khi `$video-creative-planner` viết xong kịch bản.
+- User yêu cầu thử voice mới hoặc đổi giọng cho job hiện tại.
+- Trước stage transcript (`$word-timestamps-extractor` cần file audio).
+
+## Cách sử dụng
+
+Cần `AUSYNCLAB_API_KEY` trong `.env` ở repo-root. Sau đó gõ:
+
+```text
+$ausynclab-voice — chọn giọng phù hợp creative plan và render audio
+```
+
+Agent sẽ list voice → gợi ý → render → lưu vào `source/voice.wav`. Voice đã chọn được persist vào `.env` (`AUSYNCLAB_VOICE_ID=...`) để dùng lại cho job sau.

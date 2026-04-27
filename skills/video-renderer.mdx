@@ -1,0 +1,33 @@
+---
+title: "video-renderer"
+description: "Render TOML render plan thành MP4 cuối cùng"
+icon: "film"
+---
+
+<Info>
+  **Skill ID**: `$video-renderer` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_renderer/SKILL.md)
+</Info>
+
+## Mục đích
+
+Đọc `render_plan.toml` + audio voice + asset → scaffold/cập nhật Remotion project riêng cho mỗi job tại `jobs/<id>/remotion/` → render thành `final_video.mp4` (hoặc preview). Đảm bảo text overlay & subtitle **không overflow ngang** trên canvas dọc 1080×1920.
+
+## Khi nào được invoke
+
+- Sau khi `$video-render-plan-builder` đã ghi `render_plan.toml`.
+- User yêu cầu preview / export / re-render job hiện tại.
+- Đổi code component renderer mà không đụng plan upstream.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-renderer — render final cho job hiện tại
+```
+
+Trước khi scaffold/render Remotion, skill này **bắt buộc load `$remotion-best-practices`** (cài bằng `bash scripts/ensure-remotion-skill.sh --install` nếu chưa có).
+
+<Info>
+  Output ở `jobs/<id>/output/final_video.mp4` kèm `render_report.toml` ghi warning (asset bị upscale, subtitle phải shrink fontSize, file thiếu...).
+</Info>

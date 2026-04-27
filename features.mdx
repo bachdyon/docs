@@ -1,0 +1,129 @@
+---
+title: "Tính năng"
+description: "Những gì VAS làm được — tổng quan trước khi cài"
+icon: "sparkles"
+---
+
+Trang này điểm qua các tính năng chính của VAS. Mỗi nhóm có link đi sâu để bạn đọc kỹ phần nào quan tâm.
+
+## Tự động hoá pipeline video
+
+VAS đóng gói **13 project skill** (trong `skills/<name>/SKILL.md`) + **1 skill bên thứ ba** (`$remotion-best-practices`). Mỗi skill là một module độc lập — agent đọc `SKILL.md` khi cần; bạn có thể bấm từng card bên dưới để xem tóm tắt trên docs hoặc mở [Tổng quan Skills](/skills/index).
+
+### Quản lý job
+
+<Columns cols={2}>
+  <Card title="video-job-manager" icon="folder-tree" href="/skills/video-job-manager">
+    Tạo & quản lý `jobs/<job_id>/`, theo dõi artifact stale giữa các stage.
+  </Card>
+  <Card title="video-production-orchestrator" icon="diagram-project" href="/skills/video-production-orchestrator">
+    Điều phối pipeline A→Z: đúng skill, đúng thứ tự, kiểm tra cổng thoát.
+  </Card>
+</Columns>
+
+### Asset & lập kế hoạch
+
+<Columns cols={2}>
+  <Card title="asset-semantic-extractor" icon="image" href="/skills/asset-semantic-extractor">
+    Phân tích ảnh/video/audio, xuất TOML semantic index cho các skill sau.
+  </Card>
+  <Card title="semantic-asset-mapper" icon="link" href="/skills/semantic-asset-mapper">
+    Match scene intent với asset có sẵn (vector search, SQLite + sqlite-vec).
+  </Card>
+  <Card title="video-creative-planner" icon="lightbulb" href="/skills/video-creative-planner">
+    Kịch bản & scene intent **bám asset thực có** — tránh plan footage không tồn tại.
+  </Card>
+  <Card title="video-design-spec-builder" icon="palette" href="/skills/video-design-spec-builder">
+    Chiết xuất VDS (phong cách) từ video mẫu để tái dùng cho job khác.
+  </Card>
+  <Card title="shot-coverage-planner" icon="scissors" href="/skills/shot-coverage-planner">
+    Cutaway / B-roll / slowdown khi mapper baseline thiếu shot.
+  </Card>
+  <Card title="fal-image-generator" icon="wand-magic-sparkles" href="/skills/fal-image-generator">
+    Ảnh AI qua [fal.ai](https://fal.ai/) khi không có raw footage; reference image để **cố định nhân vật**.
+  </Card>
+</Columns>
+
+### Xử lý + tạo audio
+
+<Columns cols={2}>
+  <Card title="ausynclab-voice" icon="microphone" href="/skills/ausynclab-voice">
+    Narration TTS (AusyncLab, đa giọng).
+  </Card>
+  <Card title="audio-deduplicate" icon="scissors" href="/skills/audio-deduplicate">
+    Bỏ đoạn nói trùng/lặp trong ghi âm (dựa transcript có timestamp cấp từ).
+  </Card>
+  <Card title="word-timestamps-extractor" icon="closed-captioning" href="/skills/word-timestamps-extractor">
+    Transcribe + timestamp từng từ (subtitle, dedupe, align với asset).
+  </Card>
+</Columns>
+
+### Render video
+
+<Columns cols={2}>
+  <Card title="video-render-plan-builder" icon="list-check" href="/skills/video-render-plan-builder">
+    TOML EDL từ kịch bản + asset map + audio + style rules.
+  </Card>
+  <Card title="video-renderer" icon="film" href="/skills/video-renderer">
+    Render TOML → MP4 (Remotion / FFmpeg), chuẩn TikTok/Reels/Shorts.
+  </Card>
+  <Card title="remotion-best-practices" icon="cubes-stacked" href="/installation/macos#cài-remotion-skill-chỉ-khi-sẽ-render-video-remotion-ra-mp4">
+    Skill bên thứ ba — best practice Remotion; cài bằng `bash scripts/ensure-remotion-skill.sh --install`.
+  </Card>
+</Columns>
+
+## Tìm kiếm thông minh
+
+<Columns cols={2}>
+  <Card title="Search bằng tiếng Việt" icon="magnifying-glass" href="/usage/search">
+    Gõ truy vấn ngôn ngữ tự nhiên (`phong cảnh núi tuyết`, `người đang nói`, `nhạc buồn`) — top 5 asset khớp ngữ nghĩa nhất hiện ra. Không cần tag tay.
+  </Card>
+  <Card title="Lọc theo loại / job / source" icon="filter">
+    `--media image|video|audio` để lọc loại media. `--source jobs --job <id>` để chỉ tìm trong asset của 1 job cụ thể.
+  </Card>
+</Columns>
+
+## Tích hợp 3 IDE/agent
+
+<Columns cols={2}>
+  <Card title="Cursor" icon="code" href="/quickstart#bước-2--mở-folder--cài-skill-bên-thứ-ba">
+    Mở folder bằng `cursor .` — Cursor tự pickup `AGENTS.md` làm workspace rule. 13 project skills sẵn sàng cho mọi chat.
+  </Card>
+  <Card title="Codex" icon="terminal" href="/quickstart#bước-2--mở-folder--cài-skill-bên-thứ-ba">
+    `cd` vào folder rồi gõ `codex` — Codex CLI tự đọc `AGENTS.md` + danh sách skill.
+  </Card>
+  <Card title="Claude Code" icon="code-branch" href="/quickstart#bước-2--mở-folder--cài-skill-bên-thứ-ba">
+    `claude` trong folder → discover `.claude/skills/*/SKILL.md` (đã symlink). Gõ `/skills` để verify.
+  </Card>
+  <Card title="Skill bên thứ ba" icon="cubes-stacked" href="/installation/macos#cài-remotion-skill-chỉ-khi-sẽ-render-video-remotion-ra-mp4">
+    Cài thêm skill ngoài (vd. `remotion-best-practices`) bằng 1 lệnh `bash scripts/ensure-remotion-skill.sh --install` — dùng được cho cả 3 IDE.
+  </Card>
+</Columns>
+
+## Vận hành đơn giản
+
+<Columns cols={2}>
+  <Card title="Auto installer" icon="rocket" href="/quickstart">
+    macOS / Windows: double-click `setup/Install.command` hoặc `Install.bat` — installer tự kiểm tra Python, ffmpeg, mở browser lấy API key, đăng ký watcher chạy nền. Xong trong < 5 phút.
+  </Card>
+  <Card title="Watcher chạy 24/7" icon="rotate" href="/usage/status">
+    Đăng ký với launchd (mac) / Task Scheduler (win) → tự bật cùng máy, tự restart khi crash. Đọc [`Status.command`](usage/status) để xem PID + lỗi gần nhất.
+  </Card>
+  <Card title="Idempotent" icon="recycle" href="/asset-index/idempotency">
+    Cùng 1 file index 100 lần chỉ tốn quota AI **đúng 1 lần**. Watcher restart, copy file qua nhiều folder, scan lại toàn bộ — đều an toàn, không ngốn key.
+  </Card>
+  <Card title="Đa nền tảng" icon="globe" href="/installation/macos">
+    macOS (FSEvents), Windows (ReadDirectoryChangesW), Linux (inotify) — đều hoạt động. Có fallback `--polling` cho NFS / sandbox.
+  </Card>
+</Columns>
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Bắt đầu nhanh" icon="rocket" href="/quickstart">
+    Auto installer < 5 phút cho Mac/Win.
+  </Card>
+  <Card title="Cài đặt đầy đủ" icon="screwdriver-wrench" href="/installation/macos">
+    Cài tay 3 OS để dùng toàn bộ pipeline (Remotion render, voice TTS).
+  </Card>
+</Columns>

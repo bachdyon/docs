@@ -1,0 +1,67 @@
+---
+title: "fal-image-generator"
+description: "Sinh ảnh AI bằng fal.ai (nano-banana / flux), hỗ trợ reference image để cố định nhân vật"
+icon: "wand-magic-sparkles"
+---
+
+<Info>
+  **Skill ID**: `$fal-image-generator` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/fal_image_generator/SKILL.md) · [fal.ai](https://fal.ai/)
+</Info>
+
+## Mục đích
+
+Lấp đầy "asset gap" khi user **không có raw footage thật**. Skill sinh ảnh AI từ prompt (text-to-image), kèm tùy chọn truyền **1+ ảnh tham chiếu** để cố định nhân vật xuyên suốt video — model `fal-ai/nano-banana` (Gemini 2.5 Flash Image) ưu tiên giữ identity của nhân vật trong reference khi sinh ảnh mới.
+
+Ảnh sinh ra được lưu vào `jobs/<id>/input/raw_assets/images/ai_generated/` → watcher asset-index tự pickup → pipeline tiếp tục như asset thật.
+
+## Khi nào được invoke
+
+- Pipeline có job mà `raw_assets/` rỗng / thiếu cảnh, user không định quay thêm.
+- Cần lock 1 nhân vật xuyên suốt video.
+- User cung cấp prompt cụ thể từng scene và muốn render trước khi viết creative plan đầy đủ.
+- Sau khi `$video-creative-planner` đánh dấu một số `scene_intents[].asset_requirements` chứa `ai_generated` / `ai_image`.
+
+## Cách sử dụng
+
+Cần `FAL_API_KEY` trong `.env` ở repo-root (sign up tại [fal.ai](https://fal.ai/)). Sau đó:
+
+```text
+$fal-image-generator — sinh ảnh cho job hiện tại, dùng ảnh nhân vật chính
+jobs/<id>/input/reference/character_main.jpg để cố định nhân vật
+```
+
+Hoặc gọi script trực tiếp:
+
+```bash
+# 1 prompt + reference (cố định nhân vật)
+python skills/fal_image_generator/scripts/fal_image_generator.py generate \
+  --env-file .env \
+  --prompt "Portrait of a young woman in a sunlit kitchen, vertical composition" \
+  --reference-images jobs/<id>/input/reference/character_main.jpg \
+  --output-dir jobs/<id>/input/raw_assets/images/ai_generated \
+  --report-toml jobs/<id>/source/ai_image_generation.toml
+
+# Tự đọc creative plan, sinh cho scene flag ai_generated
+python skills/fal_image_generator/scripts/fal_image_generator.py generate \
+  --env-file .env \
+  --from-creative-plan jobs/<id>/source/creative_plan.toml \
+  --reference-images jobs/<id>/input/reference/character_main.jpg \
+  --vds-path jobs/<id>/source/vds.md \
+  --output-dir jobs/<id>/input/raw_assets/images/ai_generated \
+  --report-toml jobs/<id>/source/ai_image_generation.toml
+```
+
+<Info>
+  Chi phí ước tính: `nano-banana` ~$0.039/ảnh, `flux-pro` ~$0.05/ảnh. Skill cảnh báo nếu sinh > 20 ảnh/lần.
+</Info>
+
+## Model hỗ trợ
+
+| Model | Use case | Reference image |
+| --- | --- | --- |
+| `fal-ai/nano-banana` (mặc định) | Character lock, edit ảnh có sẵn | ✅ multi-reference |
+| `fal-ai/flux/dev` | General text-to-image, vertical 9:16 | ❌ |
+| `fal-ai/flux-pro` | Chất lượng cao | ❌ |
+| `fal-ai/flux-pulid` | Face consistency từ 1 ảnh portrait | ✅ 1 reference |
+
+Override bằng `--model fal-ai/flux/dev` hoặc set `model` trong `image_prompts.toml`.

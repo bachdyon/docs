@@ -52,7 +52,7 @@ icon: "rocket"
 ## Bước 2 — Mở folder & cài skill bên thứ ba
 
 <Info>
-  Repo có sẵn `AGENTS.md` ở root + 12 project skills trong `skills/<name>/SKILL.md`. Codex, Cursor, Claude Code đều tự pickup khi mở folder. Bạn chỉ cần thêm 1 skill bên thứ ba `$remotion-best-practices` (cài bằng `scripts/ensure-remotion-skill.sh`) để render Remotion.
+  Repo có sẵn `AGENTS.md` ở root + 13 project skills trong `skills/<name>/SKILL.md`. Codex, Cursor, Claude Code đều tự pickup khi mở folder. Bạn chỉ cần thêm 1 skill bên thứ ba `$remotion-best-practices` (cài bằng `scripts/ensure-remotion-skill.sh`) để render Remotion.
 </Info>
 
 <AccordionGroup>
@@ -65,7 +65,7 @@ icon: "rocket"
 
     2. Cursor tự nhận `AGENTS.md` làm workspace rule. Verify ở **Settings → Rules** → mục **Project rules** phải hiện `AGENTS.md`.
 
-    3. 12 project skills nằm trong `skills/<name>/SKILL.md` được tham chiếu qua `$skill-name` từ `AGENTS.md` — Cursor sẽ tự load đúng `SKILL.md` khi task trùng.
+    3. 13 project skills nằm trong `skills/<name>/SKILL.md` được tham chiếu qua `$skill-name` từ `AGENTS.md` — Cursor sẽ tự load đúng `SKILL.md` khi task trùng.
 
     4. Cài skill bên thứ ba `$remotion-best-practices` bằng terminal tích hợp (mở bằng phím tắt mở terminal trong Cursor):
 
@@ -88,7 +88,7 @@ icon: "rocket"
        codex
        ```
 
-       Codex tự đọc `AGENTS.md` ở root → pickup pipeline rule + danh sách 12 project skills (`$asset-semantic-extractor`, `$video-creative-planner`, …).
+       Codex tự đọc `AGENTS.md` ở root → pickup pipeline rule + danh sách 13 project skills (`$asset-semantic-extractor`, `$video-creative-planner`, …).
 
     3. Cài skill bên thứ ba `$remotion-best-practices`:
 
@@ -115,7 +115,7 @@ icon: "rocket"
 
        Claude tự discover `.claude/skills/*/SKILL.md` (đã symlink sang `skills/` và `.agents/skills/remotion-best-practices`).
 
-    3. Trong session gõ `/skills` để verify danh sách. Phải thấy đủ 12 skill, kể cả `remotion-best-practices`.
+    3. Trong session gõ `/skills` để verify danh sách. Phải thấy đủ 13 skill, kể cả `remotion-best-practices`.
 
     4. Nếu thiếu `remotion-best-practices` (chưa cài hoặc symlink bị xoá), chạy:
 
@@ -201,7 +201,7 @@ icon: "rocket"
   <Card title="Cấu trúc dự án" icon="folder-tree" href="/configuration/structure">
     Hiểu các thư mục `skills/`, `jobs/`, `tools/`, `raw_assets/`.
   </Card>
-  <Card title="Asset Index nâng cao" icon="database" href="/asset-index/architecture">
+  <Card title="Nâng cao: Asset Index" icon="database" href="/asset-index/architecture">
     CLI dev, idempotency, cross-platform notes.
   </Card>
 </Columns>

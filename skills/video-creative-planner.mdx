@@ -1,0 +1,33 @@
+---
+title: "video-creative-planner"
+description: "Brief → script + scene + overlay + asset_requirements"
+icon: "lightbulb"
+---
+
+<Info>
+  **Skill ID**: `$video-creative-planner` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_creative_planner/SKILL.md)
+</Info>
+
+## Mục đích
+
+Biến brief / ý tưởng / chủ đề của user thành một creative plan có cấu trúc — gồm kịch bản voiceover, scene intents, text overlay, và yêu cầu asset — để các skill phía sau (voice, asset mapping, render) có thể thực thi được.
+
+## Khi nào được invoke
+
+- User đưa ra chủ đề / brief / ý tưởng video TikTok/Reels/Shorts.
+- Sau `$video-design-spec-builder` khi đã có VDS phong cách tham chiếu.
+- Khi đổi yêu cầu / đổi VDS → creative plan stale, cần viết lại.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-creative-planner — viết kịch bản TikTok 45s reflective, tham chiếu VDS đã có
+```
+
+Trước khi tự nghĩ scene, agent sẽ **search asset thực có** trong `raw_assets/` để bám sát footage tồn tại — không bịa cảnh không có.
+
+<Info>
+  Output ở `source/creative_plan.toml` (hoặc `jobs/<id>/source/...`). Asset thiếu được liệt kê ở `asset_requirements` để user biết cần quay/sourcing thêm.
+</Info>

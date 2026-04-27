@@ -1,0 +1,33 @@
+---
+title: "semantic-asset-mapper"
+description: "Chọn asset nào cho scene nào"
+icon: "link"
+---
+
+<Info>
+  **Skill ID**: `$semantic-asset-mapper` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/semantic_asset_mapper/SKILL.md)
+</Info>
+
+## Mục đích
+
+Khớp kịch bản (scene intent + transcript) với pool asset đã được index ngữ nghĩa, sinh ra **timeline 1-1**: mỗi scene → 1 asset tốt nhất, kèm `start, end, file_path, reason`.
+
+## Khi nào được invoke
+
+- Sau khi đã có 3 đầu vào: creative plan, transcript, asset semantics.
+- User đổi kịch bản hoặc thay/thêm asset → mapping cũ stale, cần build lại.
+- Trước `$shot-coverage-planner` (skill này lo phần coverage shortage).
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$semantic-asset-mapper — build mapping cho job hiện tại
+```
+
+Khi `raw_assets/` lớn (vài chục–vài trăm file), agent sẽ tự bật chế độ vector-search trên DB thay vì quét TOML.
+
+<Info>
+  Skill này **không** quyết định crop / transition / animation — đó là việc của `$video-render-plan-builder`. Cũng **không** chia nhỏ scene để bù coverage — đó là `$shot-coverage-planner`.
+</Info>

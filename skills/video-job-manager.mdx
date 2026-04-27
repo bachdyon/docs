@@ -1,0 +1,40 @@
+---
+title: "video-job-manager"
+description: "Quản lý folder jobs/<id>/ và state pipeline"
+icon: "folder-tree"
+---
+
+<Info>
+  **Skill ID**: `$video-job-manager` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_job_manager/SKILL.md)
+</Info>
+
+## Mục đích
+
+Mỗi yêu cầu video = 1 **job** biệt lập. Skill này tạo/bảo trì folder `jobs/<job_id>/` (chứa input, source, remotion, output, logs), track status từng stage, và **đánh dấu artifact stale khi input thay đổi** (vd voice đổi → transcript stale).
+
+Skill này **không** sinh nội dung video — nó chỉ giữ workspace ngăn nắp cho các skill khác đọc/ghi.
+
+## Khi nào được invoke
+
+- User bắt đầu yêu cầu video mới → tạo job.
+- Thêm reference / raw asset → đăng ký input.
+- Hỏi status, rerun một stage, hoặc tìm artifact của job cũ.
+- Sau mỗi stage hoàn thành/thất bại → cập nhật state.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-job-manager — tạo job mới "Morning routine ad", platform tiktok, 45s, vi
+```
+
+Hoặc:
+
+```text
+$video-job-manager — thêm clip /path/to/raw.mp4 vào job hiện tại
+$video-job-manager — status job 2026-04-25_001
+$video-job-manager — đánh dấu voice stale vì user đổi giọng
+```
+
+Mọi skill khác đều đọc `jobs/<id>/job.toml` để biết path và state — không tự đoán.

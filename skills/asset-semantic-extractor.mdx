@@ -1,0 +1,32 @@
+---
+title: "asset-semantic-extractor"
+description: "Mô tả mỗi ảnh/video raw chứa gì để skill phía sau dùng"
+icon: "image"
+---
+
+<Info>
+  **Skill ID**: `$asset-semantic-extractor` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/asset_semantic_extractor/SKILL.md)
+</Info>
+
+## Mục đích
+
+Đọc folder ảnh/video raw và sinh ra một file mô tả ngữ nghĩa (mood, subject, action, scene...) để các skill khác hiểu **mỗi asset chứa gì** mà không phải xem lại video.
+
+## Khi nào được invoke
+
+- User vừa thả file mới vào `raw_assets/` hoặc `jobs/<id>/input/raw_assets/`.
+- Trước khi chạy `$semantic-asset-mapper` (cần đầu vào ngữ nghĩa).
+- Khi `$video-job-manager` đánh dấu stage `asset_semantics` là `stale`.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$asset-semantic-extractor — index folder raw_assets/ cho job hiện tại
+```
+
+Agent tự chọn 1 trong 2 đường:
+
+- **Nếu watcher asset-index đang chạy** → đọc thẳng từ DB (không tốn quota Gemini).
+- **Nếu chưa cài watcher** → fallback Gemini Vision pass tươi (cần `GEMINI_API_KEY` trong `.env`).

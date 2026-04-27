@@ -1,0 +1,29 @@
+---
+title: "shot-coverage-planner"
+description: "Bù shot thiếu bằng cutaway / slowdown / Ken Burns"
+icon: "scissors"
+---
+
+<Info>
+  **Skill ID**: `$shot-coverage-planner` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/shot_coverage_planner/SKILL.md)
+</Info>
+
+## Mục đích
+
+Sau khi `$semantic-asset-mapper` build baseline 1-1, một số scene có thể **thiếu footage** (timeline dài hơn clip nguồn) hoặc **lặp 1 asset quá nhiều**. Skill này quyết định cách bù — cắt cutaway, làm chậm, hay hold + Ken Burns trên ảnh tĩnh — như editor làm thủ công.
+
+## Khi nào được invoke
+
+- Ngay sau `$semantic-asset-mapper` (chạy với `--no-cutaway`).
+- Trước `$video-render-plan-builder`.
+- Khi mapping baseline có warning `SOURCE_SHORTER_THAN_TIMELINE` hoặc 1 asset bị dùng quá 3 lần.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$shot-coverage-planner — phân tích coverage cho job hiện tại và đề xuất quyết định
+```
+
+Agent chạy detect gap (cơ học) → **agent tự đưa quyết định sáng tạo** cho từng scene → apply patch (cơ học). Skill này không gọi LLM API ngầm; mọi quyết định cutaway / slowdown đều do agent đang chat ra.

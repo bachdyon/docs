@@ -1,12 +1,14 @@
 ---
-title: "Kiến trúc"
-description: "Cách watcher → router → analyzers → embed → store kết nối với nhau"
+title: "Kiến trúc Asset Index"
+description: "Cách watcher, router, analyzer, embedding và store kết nối với nhau"
 icon: "diagram-project"
 ---
 
 Module `tools/asset_index/` là core của repo. Nó theo dõi `raw_assets/`, phân tích file mới bằng Gemini, embed mô tả qua OpenAI, và lưu vào SQLite + sqlite-vec để mọi skill query bằng ngôn ngữ tự nhiên.
 
 ## Sơ đồ
+
+Mục đích sơ đồ: cho bạn thấy đường đi đầy đủ của một file media khi được đưa vào `raw_assets/`, từ watcher phát hiện file đến khi asset có thể được tìm bằng semantic search.
 
 ```
                     ┌────────────────────────────────────┐
@@ -61,6 +63,8 @@ Module `tools/asset_index/` là core của repo. Nó theo dõi `raw_assets/`, ph
                     │  → join assets → top-K             │
                     └────────────────────────────────────┘
 ```
+
+**Mô tả sơ đồ:** Luồng bắt đầu khi watcher phát hiện file mới trong `raw_assets/` bằng cơ chế theo OS hoặc polling fallback. `router.py` hash file, bỏ qua bản đã index, rồi chọn analyzer phù hợp cho ảnh, video hoặc audio. Kết quả mô tả được embed thành vector 1536 chiều, lưu cùng metadata vào `.asset_index/index.db`, và `search.py` dùng cùng embed model để tìm asset gần nghĩa nhất cho truy vấn hoặc scene intent.
 
 ## Các module chính
 

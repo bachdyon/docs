@@ -1,0 +1,33 @@
+---
+title: "video-render-plan-builder"
+description: "Sinh edit decision list (EDL) từ kịch bản + asset map + audio"
+icon: "list-check"
+---
+
+<Info>
+  **Skill ID**: `$video-render-plan-builder` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_render_plan_builder/SKILL.md)
+</Info>
+
+## Mục đích
+
+Sau khi đã có VDS + creative plan + transcript + semantic mapping, skill này quyết định **mỗi clip được biên tập như thế nào**: crop/fit, source trim, playback speed, motion, transition, subtitle timing, overlay text, audio ducking — và xuất ra TOML render plan để renderer thực thi.
+
+## Khi nào được invoke
+
+- Sau `$shot-coverage-planner` (mapping đã đủ coverage).
+- Trước `$video-renderer`.
+- Khi user đổi style overlay / subtitle / transition mà không đụng tới mapping.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-render-plan-builder — build render plan cho job hiện tại
+```
+
+Agent đọc 4 file đầu vào, chuyển mỗi mapping thành render clip với tham số cụ thể, sinh subtitle word-level từ transcript, mang overlay text từ creative plan, validate liên tục — output ở `source/render_plan.toml`.
+
+<Info>
+  Skill này **không** chỉ định renderer cụ thể (Remotion / FFmpeg). Renderer thực sự đọc plan này ở stage tiếp theo.
+</Info>

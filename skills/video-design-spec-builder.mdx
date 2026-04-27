@@ -1,0 +1,29 @@
+---
+title: "video-design-spec-builder"
+description: "Trích phong cách (VDS) từ video mẫu để tái dùng"
+icon: "palette"
+---
+
+<Info>
+  **Skill ID**: `$video-design-spec-builder` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_design_spec_builder/SKILL.md)
+</Info>
+
+## Mục đích
+
+Phân tích 1 video mẫu (TikTok/Reels/Shorts có sẵn) và sinh ra Video Design Specification (VDS) — blueprint phong cách tái dùng được — giữ tinh thần biên tập (nhịp, mood, cấu trúc), nhưng **xoá hết identifier cá nhân** và không đóng cứng timing của video mẫu.
+
+## Khi nào được invoke
+
+- User cung cấp 1 video mẫu và muốn dựng nội dung mới theo phong cách đó.
+- Cần chuẩn hoá quy trình dựng video ngắn cho team.
+- Trước `$video-creative-planner` (planner đọc VDS để bảo toàn DNA).
+
+## Cách sử dụng
+
+Cần `GEMINI_API_KEY` trong `.env`. Gõ:
+
+```text
+$video-design-spec-builder — phân tích /path/to/sample.mp4 và sinh VDS
+```
+
+Agent upload video lên Gemini → trả về `vds.md` ở `source/` hoặc `jobs/<id>/source/`. VDS dùng `% timeline` thay vì frame tuyệt đối, nên tự co giãn theo target duration của job mới.
