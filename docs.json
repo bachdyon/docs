@@ -64,14 +64,20 @@
           {
             "group": "Vận hành",
             "pages": [
-              "troubleshooting",
               "maintenance"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Hỗ trợ",
+        "groups": [
           {
-            "group": "Cộng đồng",
+            "group": "Hỗ trợ",
             "pages": [
-              "contributing"
+              "troubleshooting",
+              "contributing",
+              "support"
             ]
           }
         ]

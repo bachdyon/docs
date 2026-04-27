@@ -6,6 +6,15 @@ icon: "recycle"
 
 Asset Index thiết kế **idempotent** ở mọi tầng — cùng input đem đi process N lần ra cùng output, không tốn thêm LLM call.
 
+<Note>
+  **Idempotent nghĩa là gì?** Là tính chất "làm 1 lần hay 100 lần đều ra cùng kết quả". Ví dụ ngoài đời:
+
+  - Bấm nút **gọi thang máy** 1 lần và bấm 100 lần → kết quả như nhau (thang đến tầng đó). Đây là idempotent.
+  - Bấm nút **mua hàng** 100 lần → trừ tiền 100 lần. **Không** idempotent.
+
+  Áp dụng cho Asset Index: cùng 1 file ảnh đem chạy index 100 lần, hệ thống chỉ gọi AI phân tích **đúng 1 lần**. 99 lần còn lại nó nhận ra "đã làm rồi" và trả lại kết quả cũ — không tốn quota OpenAI/Gemini, không thay đổi DB, không gì cả. Hữu ích khi watcher restart, khi bạn copy file qua nhiều folder, hay khi `--scan-on-start` quét lại toàn bộ.
+</Note>
+
 ## Cơ chế
 
 Trong `router.process_file()`:

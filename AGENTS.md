@@ -2,7 +2,7 @@
 
 ## About this project
 
-- Mintlify documentation site for **video-automator-skills** ([repo](https://github.com/bachdyon/video-automator-skills), [production](https://vas.mintlify.app/)).
+- Mintlify documentation site for **video-automator-skills** ([repo](https://github.com/bachdyon/video-automator-skills), [production](https://vas.bachdyon.com/)).
 - Pages are MDX files with YAML frontmatter (`title`, `description`, `icon`).
 - Navigation is configured in `docs.json`.
 - Local preview: `mint dev` (in `docs/`).

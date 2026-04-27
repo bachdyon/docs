@@ -1,12 +1,40 @@
 ---
 title: "CLI dev"
-description: "Chạy module trực tiếp khi dev/debug"
+description: "Lệnh tay dùng khi cần debug, viết script, hoặc chạy CI"
 icon: "terminal"
 ---
 
-Mỗi module trong `tools/asset_index/` đều có entry point `python -m`. Dùng khi dev, debug, hoặc CI.
+<Note>
+  **Trang này dành cho ai?** Bạn chỉ cần đọc nếu muốn **chạy lệnh tay** trong terminal — ví dụ debug khi watcher không chạy, viết script tự động, hoặc tích hợp vào CI.
+
+  Nếu bạn chỉ muốn **tìm asset** hay **xem watcher có chạy không**, dùng nút double-click trong `setup/` thì gọn hơn:
+
+  - `setup/Search.command` (Mac) / `Search.bat` (Win) — tìm asset bằng tiếng Việt.
+  - `setup/Status.command` (Mac) / `Status.bat` (Win) — xem trạng thái watcher.
+
+  Xem [Sử dụng cơ bản](/usage/index) để biết thêm.
+</Note>
+
+## Tại sao cần CLI?
+
+Module Asset Index gồm 6 file Python trong `tools/asset_index/`. Mỗi file phụ trách 1 việc và có thể chạy độc lập bằng lệnh `python -m <tên_module>`. Bảng dưới giúp bạn chọn đúng module cho công việc cần làm:
+
+| Bạn muốn… | Dùng lệnh |
+| --- | --- |
+| Theo dõi `raw_assets/` real-time, tự index file mới khi drop vào | `watcher.py` |
+| Bắt buộc index lại 1 file (sau khi sửa nội dung hoặc fix bug) | `router.py` |
+| Tìm asset trong DB bằng truy vấn ngôn ngữ tự nhiên | `search.py` |
+| Cài / gỡ / khởi động lại service watcher chạy nền | `service.py` |
+| Chạy lại trình cài đặt từng bước (như `setup/Install.command` nhưng từ terminal) | `bootstrap.py` |
+| Xuất nội dung DB ra file JSON để share, backup, hoặc migrate | `exporter.py` |
+
+<Tip>
+  Mọi lệnh dưới đây bắt đầu bằng `.venv/bin/python` — đó là Python riêng của repo (đã cài lúc setup). Nếu bạn lỡ gõ `python -m ...` (không có prefix `.venv/bin/`) máy có thể dùng Python hệ thống và thiếu thư viện → chạy fail.
+</Tip>
 
 ## watcher.py — theo dõi filesystem
+
+**Khi nào cần?** Bình thường watcher tự chạy nền (cài bằng `service.py install` hoặc auto-installer). Bạn chỉ cần chạy tay khi muốn **debug** — ví dụ thấy watcher không phát hiện file mới và muốn xem log trực tiếp.
 
 ```bash
 .venv/bin/python -m tools.asset_index.watcher [OPTIONS]
@@ -14,13 +42,13 @@ Mỗi module trong `tools/asset_index/` đều có entry point `python -m`. Dùn
 
 | Cờ | Vai trò |
 | --- | --- |
-| `--scan-on-start` | Walk các root đang watch khi khởi động — index file đã drop từ trước |
-| `--include-jobs` | Watch thêm `jobs/*/input/raw_assets/` |
-| `--watch <path>` | Thêm path tuỳ ý (có thể lặp) |
-| `--polling` | Dùng PollingObserver thay FSEvents/inotify (cho NFS, sandbox) |
-| `--debounce <sec>` | Override debounce mặc định (1.5s mac, 2.5s win) |
+| `--scan-on-start` | Khởi động xong, quét toàn bộ folder để index những file đã drop từ trước (chứ không chỉ file mới drop sau này) |
+| `--include-jobs` | Watch thêm `jobs/*/input/raw_assets/` (mặc định chỉ watch `raw_assets/` ở root) |
+| `--watch <path>` | Thêm path tuỳ ý vào danh sách watch (cờ này có thể lặp nhiều lần) |
+| `--polling` | Đổi cơ chế theo dõi sang **kiểm tra theo nhịp** (mỗi vài giây quét lại) — dùng khi chạy trên ổ mạng (NFS) hoặc trong sandbox không hỗ trợ FSEvents/inotify |
+| `--debounce <sec>` | Override khoảng chờ trước khi xử lý file mới (mặc định 1.5s trên Mac, 2.5s trên Win). Tăng lên nếu file copy chậm (ổ mạng, file lớn) |
 
-Ví dụ:
+Ví dụ — debug-mode quét lại toàn bộ folder, watch luôn cả `jobs/`, debounce 2 giây:
 
 ```bash
 .venv/bin/python -m tools.asset_index.watcher \
@@ -29,7 +57,9 @@ Ví dụ:
   --debounce 2.0
 ```
 
-## router.py — index 1 file
+## router.py — index 1 file cụ thể
+
+**Khi nào cần?** Khi watcher đã index 1 file nhưng kết quả không đúng (vd. AI mô tả sai nội dung), hoặc khi bạn sửa file gốc và muốn re-index. Router là cách bypass watcher để xử lý ngay 1 file duy nhất.
 
 ```bash
 .venv/bin/python -m tools.asset_index.router <PATH> [OPTIONS]
@@ -37,11 +67,11 @@ Ví dụ:
 
 | Cờ | Vai trò |
 | --- | --- |
-| `--force` | Re-index dù file đã có hash khớp trong DB |
-| `--db <path>` | Override DB path (mặc định `.asset_index/index.db`) |
-| `--env <path>` | Override `.env` path |
+| `--force` | Re-index dù DB đã có "vân tay" (hash) khớp với file. Mặc định router skip file đã index để tiết kiệm chi phí AI |
+| `--db <path>` | Trỏ đến file DB khác (mặc định `.asset_index/index.db`) |
+| `--env <path>` | Trỏ đến file `.env` khác (mặc định `.env` ở root repo) |
 
-Ví dụ:
+Ví dụ — bắt buộc index lại 1 ảnh ngay cả khi nó đã có trong DB:
 
 ```bash
 .venv/bin/python -m tools.asset_index.router \
@@ -49,7 +79,7 @@ Ví dụ:
   --force
 ```
 
-Output JSON:
+Output là JSON, ví dụ:
 
 ```json
 {
@@ -62,9 +92,15 @@ Output JSON:
 }
 ```
 
-`status` có thể là `ok` (mới index), `skipped` (đã có), `failed` (lỗi — xem `error` field).
+`status` có 3 giá trị có thể gặp:
 
-## search.py — tìm asset
+- `ok` — vừa index thành công.
+- `skipped` — file đã có trong DB và `--force` không bật → bỏ qua.
+- `failed` — có lỗi → xem field `error` để biết chi tiết.
+
+## search.py — tìm asset bằng ngôn ngữ tự nhiên
+
+**Khi nào cần?** Để gõ tìm asset từ terminal (gõ `python -m ... "phong cảnh núi"` thay vì mở `Search.command`). Hữu ích khi bạn viết script tự động hoặc muốn output JSON.
 
 ```bash
 .venv/bin/python -m tools.asset_index.search "<query>" [OPTIONS]
@@ -72,13 +108,13 @@ Output JSON:
 
 | Cờ | Vai trò |
 | --- | --- |
-| `--top N` | Số kết quả (mặc định 5) |
-| `--media TYPE` | `image` / `video` / `audio` |
-| `--source SOURCE` | `raw_assets` / `jobs` |
-| `--job JOB_ID` | Lọc 1 job |
-| `--json` | Output JSON thay vì human-readable |
+| `--top N` | Số kết quả tối đa (mặc định 5) |
+| `--media TYPE` | Chỉ tìm 1 loại: `image` / `video` / `audio` |
+| `--source SOURCE` | Chỉ tìm trong `raw_assets` (pool chung) hoặc `jobs` (asset của 1 job) |
+| `--job JOB_ID` | Lọc theo 1 job cụ thể (dùng kèm `--source jobs`) |
+| `--json` | Trả output JSON thay vì human-readable (để pipe vào script khác) |
 
-Ví dụ:
+Ví dụ — tìm 10 ảnh khớp ngữ nghĩa "phong cảnh núi tuyết", trả JSON:
 
 ```bash
 .venv/bin/python -m tools.asset_index.search \
@@ -88,7 +124,9 @@ Ví dụ:
   --json
 ```
 
-## service.py — đăng ký service
+## service.py — quản lý service watcher chạy nền
+
+**Khi nào cần?** Để cài/gỡ/khởi động lại watcher như một dịch vụ hệ thống. Auto-installer đã làm `install` cho bạn rồi; chỉ cần đụng tay khi muốn **gỡ**, **dừng tạm**, hoặc **debug** trạng thái.
 
 ```bash
 .venv/bin/python -m tools.asset_index.service <CMD>
@@ -96,13 +134,18 @@ Ví dụ:
 
 | Lệnh | Hành động |
 | --- | --- |
-| `install` | Tạo launchd plist (mac) / Task Scheduler entry (win) / hướng dẫn systemd (linux) |
-| `uninstall` | Gỡ service |
-| `status` | In trạng thái service hiện tại |
-| `start` | Khởi động service (sau khi `install`) |
-| `stop` | Dừng service tạm thời |
+| `install` | Đăng ký watcher với hệ điều hành để tự khởi động cùng máy: launchd plist trên macOS, Task Scheduler entry trên Windows, in hướng dẫn systemd trên Linux |
+| `uninstall` | Gỡ đăng ký + dừng watcher |
+| `status` | In trạng thái: đang chạy hay không, PID là bao nhiêu, lỗi gần nhất |
+| `start` | Khởi động watcher (sau khi đã `install`) |
+| `stop` | Dừng watcher tạm thời (đăng ký vẫn còn — máy reboot là chạy lại) |
 
-## bootstrap.py — setup wizard
+## bootstrap.py — trình setup tự động
+
+**Khi nào cần?** `bootstrap.py` chính là phần lõi của `setup/Install.command`. Bạn chạy thẳng module này khi:
+
+- Đang chạy CI và không có double-click GUI để bấm.
+- Muốn cài lại từng phần (chỉ deps, không cần đăng ký service…).
 
 ```bash
 .venv/bin/python -m tools.asset_index.bootstrap [OPTIONS]
@@ -110,22 +153,22 @@ Ví dụ:
 
 | Cờ | Vai trò |
 | --- | --- |
-| `--non-interactive` | Không prompt — fail nếu thiếu deps/key |
-| `--skip-service` | Bỏ qua bước register service |
-| `--skip-install` | Bỏ qua `pip install` (giả định venv đã sẵn sàng) |
+| `--non-interactive` | Không hỏi gì — nếu thiếu key hay deps thì fail luôn (cho CI) |
+| `--skip-service` | Cài deps + tạo DB nhưng không đăng ký watcher với OS |
+| `--skip-install` | Bỏ qua `pip install` (cho trường hợp `.venv` đã có sẵn deps) |
 
-Dùng cho CI hoặc khi muốn chạy lại bootstrap mà không cần interaction.
+## exporter.py — export DB ra JSON
 
-## exporter.py — export DB
+**Khi nào cần?** Khi muốn xem nội dung DB không qua SQLite, share index cho người khác, hoặc backup trước khi xoá `.asset_index/`.
 
 ```bash
 .venv/bin/python -m tools.asset_index.exporter --output assets.json
 ```
 
-Export toàn bộ `assets` table (không kèm embedding) ra JSON. Dùng cho debug, migration, hoặc share index.
+Lệnh này xuất toàn bộ bảng `assets` ra JSON (không kèm vector embedding để file nhẹ). Dùng cho debug, migration, hoặc share index.
 
 ## Bước tiếp theo
 
 <Card title="File runtime" icon="folder" href="/asset-index/files">
-  Cấu trúc `.asset_index/`.
+  Hiểu cấu trúc `.asset_index/` (DB SQLite, log, state.json).
 </Card>
