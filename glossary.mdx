@@ -14,6 +14,7 @@ Trang này gom **thuật ngữ thường gặp** trong tài liệu và trong cha
 | **Skill** | Một bước pipeline đóng gói trong `SKILL.md`. Trong chat thường gõ `$<tên-kebab>` (vd. `$video-job-manager`) để agent load đúng skill. |
 | **Agent** | IDE/agent (Cursor, Codex, Claude Code…) đọc `AGENTS.md` và các `SKILL.md` rồi thực hiện từng bước thay bạn. |
 | **Pipeline** | Chuỗi bước cố định: job → VDS → creative plan → voice → (tùy chọn: dedupe audio) → transcript → (tùy chọn: ảnh AI) → asset semantics → semantic map → shot coverage → render plan → render MP4. Chi tiết và sơ đồ: [Kiến trúc](/architecture). |
+| **Asset** | File media đầu vào dùng để dựng video: ảnh, video, audio, hoặc asset AI sinh ra. Asset thường nằm trong `raw_assets/` hoặc `jobs/<id>/input/raw_assets/`. |
 
 ## Job & thư mục
 
