@@ -10,21 +10,6 @@ icon: "video"
   Tài liệu này áp dụng cho repo [`bachdyon/video-automator-skills`](https://github.com/bachdyon/video-automator-skills). Mọi thuật ngữ kỹ thuật (`watcher`, `embedding`, `pipeline`…) giữ nguyên tiếng Anh; nội dung hướng dẫn viết bằng tiếng Việt.
 </Note>
 
-## Pipeline tổng quan
-
-```mermaid
-flowchart LR
-    rawAssets[raw_assets/<br/>images, videos, audio] --> watcher[asset_index<br/>SQLite + sqlite-vec]
-    watcher --> semantics[asset_semantics.toml]
-    semantics --> planner[creative_plan.toml]
-    planner --> mapper[timeline.toml]
-    voice[ausynclab_voice<br/>narration] --> dedupe[audio_deduplicate]
-    dedupe --> timestamps[word_timestamps_extractor<br/>transcript_word_level.toml]
-    timestamps --> renderPlan[render_plan.toml]
-    mapper --> renderPlan
-    renderPlan --> renderer[final.mp4]
-```
-
 ## Bắt đầu
 
 <Columns cols={2}>
