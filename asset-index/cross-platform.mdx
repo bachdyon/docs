@@ -1,0 +1,170 @@
+---
+title: "Cross-platform notes"
+description: "Lưu ý đặc thù cho macOS, Windows, Linux"
+icon: "globe"
+---
+
+Asset Index hỗ trợ macOS, Windows, Linux. Mỗi OS có quirk riêng — phần này note những gì người mới hay vấp.
+
+## macOS
+
+<AccordionGroup>
+  <Accordion title="FSEvents — backend mặc định">
+    Watchdog dùng FSEvents trên macOS. Nhanh, nhẹ CPU, nhưng:
+
+    - Không hoạt động trên ổ mạng (NFS, sshfs, AFP). Fallback: `--polling`.
+    - `mtime` chỉ chính xác đến giây — file copy nhanh có thể có 2 file cùng mtime.
+  </Accordion>
+
+  <Accordion title="launchd KeepAlive">
+    Service được install dưới `~/Library/LaunchAgents/com.video-agent.asset-index.plist` với `KeepAlive=true`. Watcher tự bật lại nếu crash.
+
+    Stop service tạm thời:
+
+    ```bash
+    launchctl bootout gui/$(id -u)/com.video-agent.asset-index
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.video-agent.asset-index.plist
+    ```
+  </Accordion>
+
+  <Accordion title="Gatekeeper chặn .command">
+    Lần đầu chạy `Install.command`, macOS có thể chặn vì script chưa được sign. Workaround:
+
+    1. Finder: chuột phải file → **Open** → **Open** trong dialog.
+    2. Hoặc: `xattr -d com.apple.quarantine setup/Install.command`.
+  </Accordion>
+
+  <Accordion title="Apple Silicon (M1/M2/M3)">
+    Tất cả deps (`apsw`, `sqlite-vec`, `watchdog`) đã có wheel arm64. Nếu lỗi build từ source khi `pip install`:
+
+    ```bash
+    .venv/bin/pip install --upgrade pip wheel
+    .venv/bin/pip install -r tools/asset_index/requirements.txt
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Windows
+
+<AccordionGroup>
+  <Accordion title="ReadDirectoryChangesW debounce dài hơn">
+    Windows fire `on_modified` rất nhiều lần khi file đang được copy lớn. Mặc định debounce = 2.5s (so với 1.5s mac). Có thể override bằng `--debounce`.
+  </Accordion>
+
+  <Accordion title="cp65001 / UTF-8 console">
+    `setup/Install.bat` và `setup/Search.bat` đã có `chcp 65001` để dùng UTF-8 — chữ Việt không bị vỡ. Nếu chạy trực tiếp PowerShell:
+
+    ```powershell
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    chcp 65001
+    ```
+
+    Nếu lỗi `'cp1252' codec can't encode character` → set env trước khi chạy:
+
+    ```powershell
+    $env:PYTHONIOENCODING = "utf-8"
+    ```
+  </Accordion>
+
+  <Accordion title="Long Paths (> 260 ký tự)">
+    Mặc định Windows giới hạn 260 ký tự cho path. Repo đặt sâu (Desktop, OneDrive…) có thể vượt giới hạn.
+
+    Bật Long Paths:
+
+    1. `gpedit.msc` → `Computer Configuration` → `Administrative Templates` → `System` → `Filesystem` → `Enable Win32 long paths` = **Enabled**.
+    2. Reboot.
+  </Accordion>
+
+  <Accordion title="Task Scheduler — ONLOGON trigger">
+    `service install` tạo task `VideoAgentAssetIndex` trigger `ONLOGON`. Watcher chỉ chạy khi user đăng nhập — không chạy ở background console session.
+
+    Manual control:
+
+    ```powershell
+    schtasks /query /tn VideoAgentAssetIndex
+    schtasks /run /tn VideoAgentAssetIndex
+    schtasks /end /tn VideoAgentAssetIndex
+    ```
+  </Accordion>
+
+  <Accordion title="apsw build lỗi">
+    Một số phiên bản Windows thiếu `sqlite3.dll` công khai cần cho `apsw`. Workaround:
+
+    ```powershell
+    .venv\Scripts\pip install --upgrade --force-reinstall apsw-wheels
+    ```
+
+    Hoặc nếu dùng `apsw` từ PyPI bị lỗi load extension, đổi sang fork pre-built có bật `enable_load_extension`.
+  </Accordion>
+
+  <Accordion title="Windows Defender block .bat">
+    Defender đôi khi quarantine `setup\Install.bat`. Workaround: chuột phải file → Properties → tick **Unblock** → Apply.
+  </Accordion>
+</AccordionGroup>
+
+## Linux
+
+<AccordionGroup>
+  <Accordion title="inotify limit">
+    inotify có giới hạn watch count (mặc định 8192 trên Ubuntu). Repo lớn có thể chạm:
+
+    ```bash
+    cat /proc/sys/fs/inotify/max_user_watches
+    ```
+
+    Tăng:
+
+    ```bash
+    echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+    sudo sysctl -p
+    ```
+  </Accordion>
+
+  <Accordion title="systemd user service vs system service">
+    `systemctl --user` chỉ chạy khi user logged in. Để service tiếp tục sau khi logout:
+
+    ```bash
+    loginctl enable-linger $USER
+    ```
+
+    Nếu cần service chạy ngay từ boot (server không có user session): convert sang system service ở `/etc/systemd/system/` thay vì `~/.config/systemd/user/`.
+  </Accordion>
+
+  <Accordion title="apsw cần enable_load_extension">
+    `sqlite-vec` cần SQLite có extension loading. Default Python sqlite3 không có. `apsw` mặc định bật, nhưng nếu build từ source bị tắt:
+
+    ```bash
+    .venv/bin/pip install --force-reinstall --no-binary :all: apsw
+    ```
+  </Accordion>
+
+  <Accordion title="NFS / sshfs filesystem">
+    inotify không hoạt động trên ổ mạng. Dùng polling:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.watcher --polling --scan-on-start
+    ```
+
+    Tốn CPU hơn FSEvents/inotify nhưng work everywhere.
+  </Accordion>
+</AccordionGroup>
+
+## SSL / certifi
+
+Trên một số môi trường (Windows enterprise, Linux container minimal), mặc định không có CA bundle → lỗi `SSL: CERTIFICATE_VERIFY_FAILED` khi gọi OpenAI/Gemini. Set env:
+
+```bash
+export REQUESTS_CA_BUNDLE=$(.venv/bin/python -c "import certifi; print(certifi.where())")
+```
+
+Hoặc trên Windows:
+
+```powershell
+$env:REQUESTS_CA_BUNDLE = (& .venv\Scripts\python -c "import certifi; print(certifi.where())")
+```
+
+## Bước tiếp theo
+
+<Card title="Mở rộng" icon="plus" href="/asset-index/extending">
+  Thêm format mới, đổi embed model, custom analyzer.
+</Card>

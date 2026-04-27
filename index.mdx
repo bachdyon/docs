@@ -1,133 +1,66 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "Giới thiệu"
+description: "Pipeline sản xuất video ngắn bằng agent skills"
+icon: "video"
 ---
 
-## Setting up
+`video-automator-skills` là kho kỹ năng (skills) để xây pipeline sản xuất video ngắn bằng agent: lập kế hoạch, xử lý audio, ánh xạ asset, dựng timeline và render. Mỗi skill đóng gói một bước trong pipeline, có thể tái sử dụng giữa các job.
 
-Get your documentation site up and running in minutes.
+<Note>
+  Tài liệu này áp dụng cho repo [`bachdyon/video-automator-skills`](https://github.com/bachdyon/video-automator-skills). Mọi thuật ngữ kỹ thuật (`watcher`, `embedding`, `pipeline`…) giữ nguyên tiếng Anh; nội dung hướng dẫn viết bằng tiếng Việt.
+</Note>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+## Pipeline tổng quan
 
-## Make it yours
+```mermaid
+flowchart LR
+    rawAssets[raw_assets/<br/>images, videos, audio] --> watcher[asset_index<br/>SQLite + sqlite-vec]
+    watcher --> semantics[asset_semantics.toml]
+    semantics --> planner[creative_plan.toml]
+    planner --> mapper[timeline.toml]
+    voice[ausynclab_voice<br/>narration] --> dedupe[audio_deduplicate]
+    dedupe --> whisper[whisper word timestamps]
+    whisper --> renderPlan[render_plan.toml]
+    mapper --> renderPlan
+    renderPlan --> renderer[final.mp4]
+```
 
-Design a docs site that looks great and empowers your users.
+## Bắt đầu
 
 <Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+  <Card title="Cài đặt nhanh" icon="rocket" href="/quickstart">
+    Double-click installer cho macOS hoặc Windows — xong trong < 5 phút.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Cài đặt đầy đủ" icon="screwdriver-wrench" href="/installation/macos">
+    Cài full deps cho 3 OS để dùng toàn bộ pipeline (Remotion render, voice TTS).
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Skills" icon="cubes" href="/skills/audio-deduplicate">
+    Danh sách skills tái sử dụng được, kèm hướng dẫn dùng.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Asset Index" icon="database" href="/asset-index/architecture">
+    Module index ngầm — watcher tự phân tích asset bằng Gemini + OpenAI embedding.
   </Card>
 </Columns>
 
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
+## Khái niệm cốt lõi
 
 <Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+  <Card title="Skill" icon="puzzle-piece">
+    Một module tái sử dụng (`skills/<name>/SKILL.md`) đóng gói 1 bước pipeline. Agent đọc `SKILL.md` để biết cách dùng.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="Job" icon="folder-tree">
+    Một lần chạy pipeline thực tế — input + artifact + output trong `jobs/<job_id>/`.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="Asset Index" icon="magnifying-glass">
+    Watcher chạy nền theo dõi `raw_assets/`, embed nội dung vào SQLite vector DB.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Render plan" icon="film">
+    File TOML mô tả EDL (edit decision list) — input cho Remotion / FFmpeg renderer.
   </Card>
 </Columns>
 
-## Make your content agent ready
+## Cần giúp đỡ?
 
-Make your docs work for humans and AI agents alike.
-
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
-  </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
-  </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
+<Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+  Danh sách lỗi thường gặp và cách xử lý nhanh.
 </Card>

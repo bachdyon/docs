@@ -1,81 +1,207 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
-icon: 'rocket'
+title: "Bắt đầu nhanh"
+description: "Cài Asset Index trong < 5 phút bằng auto installer"
+icon: "rocket"
 ---
 
-## Get started in three steps
+<Info>
+  **Auto installer cài cái gì?**
 
-Get your documentation site running locally and make your first customization.
+  Cài tự động module **Asset Index** — watcher chạy nền + DB SQLite + lệnh Search/Status. Đây là phần cốt lõi để mọi skills truy vấn asset bằng ngôn ngữ tự nhiên.
 
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+  **Chưa bao gồm**: Node.js cho render Remotion, AusyncLab cho voice TTS. Nếu muốn full pipeline → đọc [Cài đặt đầy đủ](/installation/macos).
+</Info>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Installer tự kiểm tra Python 3.10+ và `ffmpeg`/`ffprobe`. Nếu thiếu sẽ in link cách cài (`brew install ffmpeg` / `winget install Gyan.FFmpeg`) và dừng. API keys (OpenAI + Gemini) sẽ được prompt trong quá trình cài — trình duyệt tự mở trang tạo key.
 </Note>
+
+## Bước 1 — Tải repo về máy
+
+<AccordionGroup>
+  <Accordion icon="code-branch" title="Cách 1 — Git (khuyến nghị)">
+    Cần Git cài sẵn (`git --version`). Nếu chưa có:
+
+    - **macOS**: `xcode-select --install` (Apple cài kèm Git CLI).
+    - **Windows**: `winget install Git.Git`.
+    - **Linux**: `sudo apt install git` / `sudo dnf install git`.
+
+    Clone về home directory (hoặc nơi bạn muốn):
+
+    ```bash
+    cd ~
+    git clone https://github.com/bachdyon/video-automator-skills
+    cd video-automator-skills
+    ```
+
+    <Tip>Lợi thế: dễ `git pull` lấy update sau này. Xem [Cập nhật & Gỡ cài đặt](/maintenance).</Tip>
+  </Accordion>
+
+  <Accordion icon="download" title="Cách 2 — Download ZIP">
+    1. Mở https://github.com/bachdyon/video-automator-skills.
+    2. Click nút **Code** (xanh) → **Download ZIP**.
+    3. Giải nén:
+       - **macOS**: double-click file `.zip` trong Finder.
+       - **Windows**: chuột phải → **Extract All…**.
+    4. Đổi tên folder thành `video-automator-skills` (bỏ hậu tố `-main` nếu có).
+
+    <Warning>Cách này không có `.git/` → không `git pull` được. Mỗi lần update phải tải ZIP mới và copy đè. Khuyến nghị dùng cách 1.</Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Bước 2 — Mở folder & cài skill bên thứ ba
+
+<Info>
+  Repo có sẵn `AGENTS.md` ở root + 12 project skills trong `skills/<name>/SKILL.md`. Codex, Cursor, Claude Code đều tự pickup khi mở folder. Bạn chỉ cần thêm 1 skill bên thứ ba `$remotion-best-practices` (cài bằng `scripts/ensure-remotion-skill.sh`) để render Remotion.
+</Info>
+
+<AccordionGroup>
+  <Accordion icon="code" title="Cursor (khuyến nghị)">
+    1. Mở folder qua **File → Open Folder…**, hoặc CLI từ trong repo:
+
+       ```bash
+       cursor .
+       ```
+
+    2. Cursor tự nhận `AGENTS.md` làm workspace rule. Verify ở **Settings → Rules** → mục **Project rules** phải hiện `AGENTS.md`.
+
+    3. 12 project skills nằm trong `skills/<name>/SKILL.md` được tham chiếu qua `$skill-name` từ `AGENTS.md` — Cursor sẽ tự load đúng `SKILL.md` khi task trùng.
+
+    4. Cài skill bên thứ ba `$remotion-best-practices` bằng terminal tích hợp (mở bằng phím tắt mở terminal trong Cursor):
+
+       ```bash
+       bash scripts/ensure-remotion-skill.sh --install
+       ```
+  </Accordion>
+
+  <Accordion icon="terminal" title="Codex">
+    1. Cài Codex CLI nếu chưa có:
+
+       ```bash
+       npm i -g @openai/codex
+       ```
+
+    2. `cd` vào folder repo và mở session:
+
+       ```bash
+       cd ~/video-automator-skills
+       codex
+       ```
+
+       Codex tự đọc `AGENTS.md` ở root → pickup pipeline rule + danh sách 12 project skills (`$asset-semantic-extractor`, `$video-creative-planner`, …).
+
+    3. Cài skill bên thứ ba `$remotion-best-practices`:
+
+       ```bash
+       bash scripts/ensure-remotion-skill.sh --install
+       ```
+
+       Script wrap `npx skills add remotion-dev/skills --yes`, ghi `skills-lock.json` và tạo symlink `.claude/skills/remotion-best-practices` (cho Claude Code dùng chung).
+  </Accordion>
+
+  <Accordion icon="code-branch" title="Claude Code">
+    1. Cài Claude Code nếu chưa có:
+
+       ```bash
+       npm i -g @anthropic-ai/claude-code
+       ```
+
+    2. `cd` vào folder repo và mở session:
+
+       ```bash
+       cd ~/video-automator-skills
+       claude
+       ```
+
+       Claude tự discover `.claude/skills/*/SKILL.md` (đã symlink sang `skills/` và `.agents/skills/remotion-best-practices`).
+
+    3. Trong session gõ `/skills` để verify danh sách. Phải thấy đủ 12 skill, kể cả `remotion-best-practices`.
+
+    4. Nếu thiếu `remotion-best-practices` (chưa cài hoặc symlink bị xoá), chạy:
+
+       ```bash
+       bash scripts/ensure-remotion-skill.sh --install
+       ```
+
+       Script tự tái tạo symlink `.claude/skills/remotion-best-practices`.
+  </Accordion>
+</AccordionGroup>
+
+## Bước 3 — Chạy installer
+
+<AccordionGroup>
+  <Accordion icon="apple" title="macOS">
+    1. Mở Finder, vào thư mục `video-automator-skills` vừa clone/giải nén.
+    2. Vào folder `setup/`, **double-click `Install.command`**.
+    3. Khi terminal hiện, làm theo prompt:
+       - Trình duyệt tự mở 2 trang tạo key — copy về và dán vào terminal.
+       - Installer tự tạo `.venv`, cài deps, đăng ký watcher chạy nền (launchd).
+    4. Xong. Watcher chạy nền và tự bật lại sau khi reboot.
+
+    <Tip>Lần đầu chạy `Install.command`, macOS có thể chặn vì script chưa được sign. Nếu vậy: chuột phải → Open → Open.</Tip>
+  </Accordion>
+
+  <Accordion icon="windows" title="Windows">
+    1. Mở File Explorer, vào thư mục `video-automator-skills` vừa clone/giải nén → folder `setup\`.
+    2. **Double-click `Install.bat`**.
+    3. Khi PowerShell/cmd hiện, làm theo prompt:
+       - Trình duyệt tự mở 2 trang tạo key — copy về và dán vào terminal.
+       - Installer tự tạo `.venv`, cài deps, đăng ký watcher chạy nền (Task Scheduler).
+    4. Xong. Watcher chạy nền và tự bật lại sau khi đăng nhập lại.
+
+    <Warning>Nếu đường dẫn repo > 260 ký tự, bật **Long Paths** trong Group Policy: `Computer Configuration → Filesystem → Enable Win32 long paths`.</Warning>
+  </Accordion>
+
+  <Accordion icon="linux" title="Linux">
+    Auto installer chỉ hỗ trợ macOS/Windows. Linux dùng [Cài đặt đầy đủ](/installation/linux).
+  </Accordion>
+</AccordionGroup>
+
+## Bước 4 — Sau khi cài
+
+<Steps>
+  <Step title="Thả file vào raw_assets/">
+    Drop ảnh/video/audio vào một trong 3 folder:
+
+    - `raw_assets/images/`
+    - `raw_assets/videos/`
+    - `raw_assets/audio/`
+
+    Watcher debounce 1.5s rồi tự gọi Gemini analyzer + OpenAI embedding, lưu vào `.asset_index/index.db`.
+  </Step>
+
+  <Step title="Tìm asset">
+    **macOS**: double-click `setup/Search.command`
+    **Windows**: double-click `setup/Search.bat`
+
+    Gõ truy vấn tiếng Việt (ví dụ `phong cảnh núi`, `người đang nói`, `nhạc buồn`). Top 5 kết quả khớp ngữ nghĩa nhất sẽ hiện.
+  </Step>
+
+  <Step title="Kiểm tra trạng thái watcher">
+    **macOS**: `setup/Status.command`
+    **Windows**: `setup/Status.bat`
+
+    Output gồm `pid`, `processed_count`, `last_error`. Nếu `pid` rỗng → watcher chưa chạy, xem [Khắc phục sự cố](/troubleshooting).
+  </Step>
+
+  <Step title="Verify">
+    Drop 1 file ảnh test vào `raw_assets/images/`, đợi ~5 giây, chạy Search với từ khoá khớp nội dung ảnh. Phải trả về ≥ 1 kết quả. Nếu không → xem [Khắc phục sự cố](/troubleshooting).
+  </Step>
+</Steps>
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Cài đầy đủ cho full pipeline" icon="layer-group" href="/installation/macos">
+    Thêm Node.js cho Remotion render và AusyncLab cho voice TTS.
+  </Card>
+  <Card title="Khám phá skills" icon="cubes" href="/skills/audio-deduplicate">
+    Mỗi skill đóng gói 1 bước pipeline.
+  </Card>
+  <Card title="Cấu trúc dự án" icon="folder-tree" href="/configuration/structure">
+    Hiểu các thư mục `skills/`, `jobs/`, `tools/`, `raw_assets/`.
+  </Card>
+  <Card title="Asset Index nâng cao" icon="database" href="/asset-index/architecture">
+    CLI dev, idempotency, cross-platform notes.
+  </Card>
+</Columns>

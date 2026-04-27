@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "video-automator-skills",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -11,81 +11,72 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Hướng dẫn",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Bắt đầu",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Cài đặt đầy đủ",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "installation/macos",
+              "installation/windows",
+              "installation/linux"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Cấu hình",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
+              "configuration/env",
+              "configuration/structure"
             ]
           },
           {
-            "group": "Agent ready",
+            "group": "Sử dụng",
             "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
+              "usage/index",
+              "usage/search",
+              "usage/status",
+              "usage/verify"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Skills",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "skills/audio-deduplicate"
+            ]
+          },
+          {
+            "group": "Asset Index nâng cao",
+            "pages": [
+              "asset-index/architecture",
+              "asset-index/cli",
+              "asset-index/files",
+              "asset-index/idempotency",
+              "asset-index/cross-platform",
+              "asset-index/extending"
+            ]
+          },
+          {
+            "group": "Vận hành",
+            "pages": [
+              "troubleshooting",
+              "maintenance"
+            ]
+          },
+          {
+            "group": "Cộng đồng",
+            "pages": [
+              "contributing"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -94,33 +85,28 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "GitHub",
+        "href": "https://github.com/bachdyon/video-automator-skills"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Tải về",
+      "href": "https://github.com/bachdyon/video-automator-skills"
     }
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "claude",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/bachdyon/video-automator-skills"
     }
   }
 }

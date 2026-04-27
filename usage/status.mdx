@@ -1,0 +1,110 @@
+---
+title: "Kiểm tra trạng thái"
+description: "Watcher đang chạy không, đã index bao nhiêu file, lỗi gần nhất là gì"
+icon: "heart-pulse"
+---
+
+## Cách 1 — Status.command / Status.bat (cho người mới)
+
+<AccordionGroup>
+  <Accordion icon="apple" title="macOS">
+    Double-click `setup/Status.command`.
+
+    Output dạng:
+
+    ```
+    pid: 12345
+    processed_count: 87
+    last_error: null
+    last_processed: raw_assets/images/IMG_0042.jpg
+    ```
+  </Accordion>
+
+  <Accordion icon="windows" title="Windows">
+    Double-click `setup\Status.bat`.
+  </Accordion>
+</AccordionGroup>
+
+## Cách 2 — Đọc trực tiếp `state.json`
+
+```bash
+cat .asset_index/state.json
+```
+
+Cấu trúc:
+
+```json
+{
+  "pid": 12345,
+  "processed_count": 87,
+  "last_processed_at": "2026-04-27T10:15:23+07:00",
+  "last_processed_path": "raw_assets/images/IMG_0042.jpg",
+  "last_error": null,
+  "watcher_started_at": "2026-04-27T08:00:00+07:00"
+}
+```
+
+## Cách 3 — Service status
+
+<AccordionGroup>
+  <Accordion icon="apple" title="macOS — launchd">
+    ```bash
+    .venv/bin/python -m tools.asset_index.service status
+    launchctl list | grep com.video-agent
+    ```
+
+    Nếu thấy `com.video-agent.asset-index` với pid > 0 → service đang chạy.
+  </Accordion>
+
+  <Accordion icon="windows" title="Windows — Task Scheduler">
+    ```powershell
+    .venv\Scripts\python -m tools.asset_index.service status
+    schtasks /query /tn VideoAgentAssetIndex
+    ```
+  </Accordion>
+
+  <Accordion icon="linux" title="Linux — systemd">
+    ```bash
+    systemctl --user status video-agent-asset-index
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Trạng thái phổ biến
+
+| Trạng thái | Ý nghĩa | Hành động |
+| --- | --- | --- |
+| `pid > 0`, `last_error = null` | Watcher chạy bình thường | OK |
+| `pid` rỗng | Watcher chưa khởi động | Chạy `service install` lại |
+| `last_error != null` | Có lỗi gần nhất | Đọc log + xem [Khắc phục sự cố](/troubleshooting) |
+| `processed_count = 0` sau khi drop file | Watcher chạy nhưng không pick file | Kiểm tra log, có thể cần `--polling` |
+
+## Đọc log
+
+<AccordionGroup>
+  <Accordion icon="apple" title="macOS">
+    ```bash
+    tail -f .asset_index/logs/watcher.out.log
+    tail -f .asset_index/logs/watcher.err.log
+    ```
+  </Accordion>
+
+  <Accordion icon="windows" title="Windows">
+    ```powershell
+    Get-Content -Wait .asset_index\logs\watcher.out.log
+    Get-Content -Wait .asset_index\logs\watcher.err.log
+    ```
+  </Accordion>
+
+  <Accordion icon="linux" title="Linux">
+    ```bash
+    journalctl --user -u video-agent-asset-index -f
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Bước tiếp theo
+
+<Card title="Verify sau cài" icon="check-double" href="/usage/verify">
+  Test end-to-end: drop file → search → kết quả.
+</Card>

@@ -1,0 +1,138 @@
+---
+title: "File runtime"
+description: "Cấu trúc thư mục .asset_index/ ở runtime"
+icon: "folder"
+---
+
+Tất cả runtime của Asset Index nằm trong `.asset_index/` ở root repo. Folder này nằm trong `.gitignore` và có thể xoá bất kỳ lúc nào (rebuild lần sau sẽ tốn thời gian + LLM call).
+
+```
+.asset_index/
+├── index.db                  # SQLite + sqlite-vec database
+├── state.json                # runtime state của watcher
+└── logs/
+    ├── watcher.out.log       # stdout của watcher
+    └── watcher.err.log       # stderr (lỗi quan trọng)
+```
+
+## index.db
+
+SQLite database chứa 3 bảng (xem [`schema.sql`](https://github.com/bachdyon/video-automator-skills/blob/main/tools/asset_index/schema.sql)):
+
+### `assets`
+
+Mỗi row = 1 file media đã index.
+
+| Cột | Kiểu | Vai trò |
+| --- | --- | --- |
+| `id` | TEXT PK | SHA-256 hash của file (lowercase hex) |
+| `file_name` | TEXT | Tên file (không kèm path) |
+| `file_path` | TEXT UNIQUE | Path tuyệt đối |
+| `source_root` | TEXT | `raw_assets` hoặc `jobs` |
+| `job_id` | TEXT | NULL nếu thuộc raw_assets pool |
+| `media_type` | TEXT | `image` / `video` / `audio` |
+| `size_bytes` | INTEGER | Kích thước file |
+| `mtime` | REAL | Modification time (unix epoch) |
+| `width`, `height` | INTEGER | Cho image + video |
+| `duration_seconds`, `fps` | REAL | Cho video + audio |
+| `has_audio` | INTEGER | 0/1 cho video |
+| `style`, `summary` | TEXT | Mô tả do Gemini sinh |
+| `transcript` | TEXT | Cho audio (Whisper output) |
+| `audio_role` | TEXT | `voice_over` / `background_music` / `sound_effect` |
+| `tags_json`, `mood_json`, `scenes_json` | TEXT | JSON arrays |
+| `raw_json` | TEXT | Toàn bộ output gốc của analyzer (audit) |
+| `embed_source` | TEXT | Text đã đem đi embed |
+| `embed_model` | TEXT | `text-embedding-3-small` |
+| `indexed_at` | TEXT | Timestamp ISO |
+
+### `assets_vec` (virtual table sqlite-vec)
+
+```sql
+CREATE VIRTUAL TABLE assets_vec USING vec0(
+  id TEXT PRIMARY KEY,
+  embedding FLOAT[1536]
+);
+```
+
+Lưu embedding 1536 chiều, dùng cho K-NN search. `id` join với `assets.id`.
+
+### `process_log`
+
+Audit trail mỗi lần `process_file()` chạy:
+
+| Cột | Vai trò |
+| --- | --- |
+| `id` | Auto-increment PK |
+| `file_path` | Path file đã process |
+| `content_hash` | SHA-256 (nếu compute thành công) |
+| `status` | `ok` / `skipped` / `failed` |
+| `error` | Message lỗi (nếu fail) |
+| `ran_at` | Timestamp ISO |
+
+Dùng để debug "file này đã từng được process chưa".
+
+## state.json
+
+Watcher viết file này định kỳ — dùng để check trạng thái nhanh mà không cần đọc DB:
+
+```json
+{
+  "pid": 12345,
+  "watcher_started_at": "2026-04-27T08:00:00+07:00",
+  "processed_count": 87,
+  "last_processed_at": "2026-04-27T10:15:23+07:00",
+  "last_processed_path": "raw_assets/images/IMG_0042.jpg",
+  "last_error": null,
+  "watch_paths": ["raw_assets"],
+  "debounce_seconds": 1.5
+}
+```
+
+`pid` được dùng làm single-instance lock — nếu watcher khác cố start sẽ check `psutil.pid_exists(pid)` và refuse khởi động trùng.
+
+## logs/
+
+<AccordionGroup>
+  <Accordion title="watcher.out.log">
+    Stdout, gồm:
+    - `[watcher] starting…` — khởi động
+    - `[watcher] processed <path> in <X>ms` — mỗi file index xong
+    - `[watcher] skipped <path>` — đã có hash khớp
+    - `[watcher] scan-on-start: N files` — đếm khi khởi động
+  </Accordion>
+
+  <Accordion title="watcher.err.log">
+    Stderr, gồm:
+    - Stack trace khi analyzer fail
+    - Cảnh báo từ ffprobe
+    - API error từ Gemini/OpenAI (có thể có rate-limit retry message)
+  </Accordion>
+</AccordionGroup>
+
+Log không tự rotate — nếu file lớn quá có thể truncate thủ công:
+
+```bash
+> .asset_index/logs/watcher.out.log
+> .asset_index/logs/watcher.err.log
+```
+
+## Backup / Migration
+
+Để backup index hoàn chỉnh, copy nguyên `.asset_index/`:
+
+```bash
+tar -czf asset-index-backup-$(date +%Y%m%d).tar.gz .asset_index/
+```
+
+Restore bằng cách extract về root repo. **Lưu ý**: `file_path` trong `assets` là path tuyệt đối — nếu repo move sang máy khác, query có thể fail. Workaround: re-export bằng `exporter.py` rồi re-import path tương đối.
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Idempotency" icon="recycle" href="/asset-index/idempotency">
+    Re-index không tốn LLM call.
+  </Card>
+  <Card title="Cross-platform" icon="globe" href="/asset-index/cross-platform">
+    Notes cho macOS / Windows / Linux.
+  </Card>
+</Columns>

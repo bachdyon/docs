@@ -1,0 +1,105 @@
+---
+title: "Kiến trúc"
+description: "Cách watcher → router → analyzers → embed → store kết nối với nhau"
+icon: "diagram-project"
+---
+
+Module `tools/asset_index/` là core của repo. Nó theo dõi `raw_assets/`, phân tích file mới bằng Gemini, embed mô tả qua OpenAI, và lưu vào SQLite + sqlite-vec để mọi skill query bằng ngôn ngữ tự nhiên.
+
+## Sơ đồ
+
+```
+                    ┌────────────────────────────────────┐
+                    │  raw_assets/                       │
+                    │  ├── images/                       │
+                    │  ├── videos/                       │
+                    │  └── audio/                        │
+                    └─────────────┬──────────────────────┘
+                                  │ FSEvents (macOS) / ReadDirectoryChangesW (Windows)
+                                  │ inotify (Linux) / Polling (fallback)
+                                  ▼
+                    ┌────────────────────────────────────┐
+                    │  watcher.py                        │
+                    │  - debounce 1.5s (mac) / 2.5s (win)│
+                    │  - size-stable check               │
+                    │  - single-instance lock            │
+                    └─────────────┬──────────────────────┘
+                                  │ process_file(path)
+                                  ▼
+                    ┌────────────────────────────────────┐
+                    │  router.py                         │
+                    │  - SHA-256 hash                    │
+                    │  - skip if (hash, mtime) đã có     │
+                    │  - classify ext → media_type       │
+                    └─────────────┬──────────────────────┘
+                                  │
+                  ┌───────────────┼─────────────────┐
+                  ▼               ▼                 ▼
+        ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+        │ image_gemini │ │ video_gemini │ │ audio_gemini │
+        │ Vision API   │ │ Probe + LLM  │ │ Whisper +    │
+        │              │ │              │ │ classify     │
+        └──────┬───────┘ └──────┬───────┘ └──────┬───────┘
+               └────────────────┼────────────────┘
+                                ▼
+                    ┌────────────────────────────────────┐
+                    │  embed.py                          │
+                    │  OpenAI text-embedding-3-small     │
+                    │  → 1536-dim vector                 │
+                    └─────────────┬──────────────────────┘
+                                  ▼
+                    ┌────────────────────────────────────┐
+                    │  store.py → .asset_index/index.db  │
+                    │  - assets (metadata + summary)     │
+                    │  - assets_vec (sqlite-vec, 1536)   │
+                    │  - process_log (audit trail)       │
+                    └─────────────┬──────────────────────┘
+                                  ▼
+                    ┌────────────────────────────────────┐
+                    │  search.py                         │
+                    │  query → embed → vec0 nearest      │
+                    │  → join assets → top-K             │
+                    └────────────────────────────────────┘
+```
+
+## Các module chính
+
+| File | Vai trò |
+| --- | --- |
+| `watcher.py` | Theo dõi filesystem, debounce, dispatch path → router |
+| `router.py` | Hash, skip nếu trùng, gọi analyzer phù hợp, embed, upsert |
+| `analyzers/image_gemini.py` | Single-frame Gemini Vision cho ảnh |
+| `analyzers/video_gemini.py` | Probe ffprobe + Gemini multimodal cho video |
+| `analyzers/audio_gemini.py` | Whisper transcript + Gemini classify cho audio |
+| `embed.py` | OpenAI `text-embedding-3-small` (1536 chiều) |
+| `store.py` | SQLite + sqlite-vec virtual table CRUD |
+| `search.py` | Query → embedding → vec0 nearest → join assets |
+| `service.py` | Đăng ký watcher dưới launchd / Task Scheduler / systemd |
+| `bootstrap.py` | Setup wizard cho auto installer |
+| `hashing.py` | SHA-256 streaming cho file lớn |
+| `gemini_client.py` | Gemini API wrapper với retry + rate-limit |
+
+## Schema DB
+
+3 bảng (xem [`schema.sql`](https://github.com/bachdyon/video-automator-skills/blob/main/tools/asset_index/schema.sql)):
+
+- **`assets`** — metadata + summary do Gemini sinh.
+- **`assets_vec`** — virtual table sqlite-vec, embedding 1536 chiều, FTS K-NN.
+- **`process_log`** — audit trail mỗi lần process (status, error, ran_at).
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="CLI dev" icon="terminal" href="/asset-index/cli">
+    Chạy module trực tiếp khi dev/debug.
+  </Card>
+  <Card title="File runtime" icon="folder" href="/asset-index/files">
+    `.asset_index/index.db`, `state.json`, `logs/`.
+  </Card>
+  <Card title="Idempotency" icon="recycle" href="/asset-index/idempotency">
+    Vì sao re-index file không tốn LLM call.
+  </Card>
+  <Card title="Mở rộng" icon="plus" href="/asset-index/extending">
+    Thêm format, đổi embed model.
+  </Card>
+</Columns>

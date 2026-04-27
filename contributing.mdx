@@ -1,0 +1,237 @@
+---
+title: "Đóng góp"
+description: "Báo bug, đề xuất feature, hoặc viết skill mới"
+icon: "heart"
+---
+
+Cảm ơn bạn quan tâm đến `video-automator-skills`. Tài liệu này tóm tắt các cách đóng góp.
+
+<Note>
+  Bản root [`CONTRIBUTING.md`](https://github.com/bachdyon/video-automator-skills/blob/main/CONTRIBUTING.md) là nguồn chính được GitHub auto-detect. Trang này là phiên bản Mintlify với MDX components để dễ đọc hơn.
+</Note>
+
+## Báo bug
+
+<Card title="Mở GitHub Issue" icon="bug" href="https://github.com/bachdyon/video-automator-skills/issues">
+  Cung cấp đủ context để reproduce.
+</Card>
+
+Template recommended:
+
+```markdown
+**OS + version**: macOS 14.5 / Windows 11 / Ubuntu 22.04
+**Python version**: 3.12.1
+**Lệnh đã chạy**: `.venv/bin/python -m tools.asset_index.watcher --scan-on-start`
+**Output lỗi**:
+\`\`\`
+<paste full traceback>
+\`\`\`
+**state.json**:
+\`\`\`json
+<paste .asset_index/state.json nếu liên quan>
+\`\`\`
+**Bước reproduce**:
+1. ...
+2. ...
+```
+
+## Đề xuất feature
+
+Mở Issue với label `feature-request`:
+
+- **Use case** — bạn đang làm gì, gặp khó khăn gì.
+- **Đề xuất giải pháp** (nếu có).
+- **Skill nào bị ảnh hưởng**.
+
+## Quy trình PR
+
+<Steps>
+  <Step title="Fork + branch">
+    Fork repo trên GitHub, clone về máy:
+
+    ```bash
+    git clone git@github.com:<your-username>/video-automator-skills.git
+    cd video-automator-skills
+    git checkout -b feat/<short-name>
+    ```
+
+    Naming convention:
+
+    - `feat/<name>` — feature mới.
+    - `fix/<name>` — bug fix.
+    - `docs/<name>` — chỉ docs.
+    - `refactor/<name>` — không đổi behavior.
+  </Step>
+
+  <Step title="Commit theo Conventional Commits">
+    Format: `<type>(<scope>): <description>` (tiếng Anh).
+
+    Ví dụ:
+
+    ```
+    feat(asset-index): add audio resample analyzer
+    fix(watcher): handle FSEvents on case-insensitive volumes
+    docs(skills): port audio-deduplicate to MDX
+    ```
+
+    Reference: [conventionalcommits.org](https://www.conventionalcommits.org/).
+  </Step>
+
+  <Step title="Test trước khi PR">
+    <AccordionGroup>
+      <Accordion title="Test installer sạch">
+        Trên máy chưa cài (hoặc xoá `.venv` + `.asset_index`):
+
+        ```bash
+        bash setup/Install.command
+        ```
+
+        Hoàn thành end-to-end mới merge.
+      </Accordion>
+
+      <Accordion title="Preview docs Mintlify">
+        ```bash
+        cd docs
+        mint dev
+        ```
+
+        Mở `http://localhost:3000`, click vào trang đã sửa để verify.
+      </Accordion>
+
+      <Accordion title="Verify links">
+        ```bash
+        cd docs
+        mint broken-links
+        ```
+
+        Phải pass với 0 lỗi trước khi PR.
+      </Accordion>
+    </AccordionGroup>
+  </Step>
+
+  <Step title="Mở PR">
+    Trên GitHub, mở PR về `main`. Mô tả gồm:
+
+    - **Vấn đề giải quyết** — link Issue nếu có.
+    - **Thay đổi chính** — bullets ngắn.
+    - **Cách test** — checklist bạn đã chạy.
+    - **Screenshot** — nếu đụng UI/docs.
+  </Step>
+</Steps>
+
+## Code style
+
+<AccordionGroup>
+  <Accordion title="Python">
+    - Dùng `ruff` (cấu hình mặc định).
+    - 4 spaces, không tab.
+    - Type hints khi có thể (`def f(x: int) -> str:`).
+    - Docstring cho function public (Google style hoặc một dòng tóm tắt).
+    - Không commit `print()` debug — dùng `logging`.
+  </Accordion>
+
+  <Accordion title="MDX (Mintlify docs)">
+    - 1 ý / câu — sentence case heading (`## Bước tiếp theo`, không `## BƯỚC TIẾP THEO`).
+    - Dùng MDX components khi cần: `<Note>`, `<Tip>`, `<Warning>`, `<Steps>`, `<AccordionGroup>`, `<Card>`, `<Columns>`.
+    - Code block luôn có language tag (` ```bash `, ` ```python `, ` ```toml `).
+    - Frontmatter bắt buộc: `title`, `description`, `icon`.
+  </Accordion>
+
+  <Accordion title="Ngôn ngữ">
+    - **Nội dung docs / UX**: tiếng Việt.
+    - **Comment code**: tiếng Anh.
+    - **Commit message + PR title**: tiếng Anh (Conventional Commits).
+    - **Thuật ngữ kỹ thuật**: giữ nguyên tiếng Anh — `watcher`, `embedding`, `idempotent`, `pipeline`, `fork`, `branch`, `commit`, `PR`, `Issue`, `API key`, `env`, `venv`, `repo`, `OpenAI`, `Gemini`, `OS`, `CLI`, `MDX`, `frontmatter`, `analyzer`, `router`.
+  </Accordion>
+</AccordionGroup>
+
+## Đóng góp skill mới
+
+<Steps>
+  <Step title="Copy template">
+    ```bash
+    cp -r skills/_shared skills/<your-skill>
+    ```
+
+    Cập nhật `<your-skill>/SKILL.md` với frontmatter:
+
+    ```markdown
+    ---
+    name: your-skill
+    description: <1 dòng mô tả ngắn để Cursor index>
+    metadata:
+      short-description: <thậm chí ngắn hơn>
+    ---
+    ```
+  </Step>
+
+  <Step title="Viết SKILL.md đầy đủ">
+    Theo format hiện có (xem [`audio-deduplicate/SKILL.md`](https://github.com/bachdyon/video-automator-skills/blob/main/skills/audio-deduplicate/SKILL.md)):
+
+    - TL;DR
+    - Quy tắc cứng
+    - Tổng quan pipeline (bảng bước)
+    - Mỗi bước: lệnh + ví dụ + cổng thoát
+    - Khắc phục sự cố
+  </Step>
+
+  <Step title="Update AGENTS.md">
+    Thêm dòng `$your-skill` vào section **Project Skills** trong [AGENTS.md](https://github.com/bachdyon/video-automator-skills/blob/main/AGENTS.md).
+  </Step>
+
+  <Step title="Tạo trang Mintlify">
+    `docs/skills/your-skill.mdx` — port nội dung SKILL.md sang MDX. Giữ nguyên nội dung kỹ thuật, đổi format thành MDX components.
+
+    Thêm vào `docs/docs.json` trong group **Skills**:
+
+    ```json
+    {
+      "group": "Skills",
+      "pages": [
+        "skills/audio-deduplicate",
+        "skills/your-skill"
+      ]
+    }
+    ```
+  </Step>
+
+  <Step title="Test trong job dummy">
+    ```bash
+    mkdir -p jobs/test-your-skill/input
+    # ...test workflow...
+    ```
+  </Step>
+</Steps>
+
+## Code of Conduct
+
+<AccordionGroup>
+  <Accordion title="Tôn trọng người khác">
+    Trong mọi tương tác (Issue, PR, discussion). Phê bình mang tính xây dựng, không công kích cá nhân.
+  </Accordion>
+
+  <Accordion title="Không spam">
+    Không quảng cáo sản phẩm, không đăng nội dung độc hại, không spam comment.
+  </Accordion>
+
+  <Accordion title="Bảo mật">
+    Không chia sẻ API key, secret, hoặc dữ liệu cá nhân của người khác trong Issue/PR. Nếu thấy lộ key trong code → tag maintainer ngay.
+  </Accordion>
+</AccordionGroup>
+
+## License của contribution
+
+<Warning>
+  Đóng góp vào repo này được xem như đồng ý cấp quyền cho `bachdyon` theo **PolyForm Noncommercial 1.0.0** (xem [LICENSE](https://github.com/bachdyon/video-automator-skills/blob/main/LICENSE)). Nếu contribution của bạn có ý định thương mại hoặc cần điều khoản license khác, vui lòng thoả thuận với tác giả trước.
+</Warning>
+
+## Liên hệ
+
+<Columns cols={2}>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/bachdyon/video-automator-skills/issues">
+    Cách chính để báo bug + đề xuất.
+  </Card>
+  <Card title="@bachdyon" icon="user" href="https://github.com/bachdyon">
+    DM tác giả nếu cần hỗ trợ về license hoặc business inquiry.
+  </Card>
+</Columns>

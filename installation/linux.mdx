@@ -1,0 +1,309 @@
+---
+title: "Cài đặt đầy đủ — Linux"
+description: "Hướng dẫn cài full toàn bộ phần mềm cần thiết trên Linux, từng bước có giải thích để người mới làm quen với terminal cũng theo được."
+icon: "linux"
+---
+
+<Note>
+  Trang này dành cho **bạn nào muốn dùng full pipeline** — có cả tạo voice tự động bằng AI, render video Remotion, chứ không chỉ index asset.
+
+  Toàn bộ lệnh trong trang này gõ trong **Terminal**. Mở: nhấn `Ctrl + Alt + T` (Ubuntu, Mint, Pop!_OS) hoặc tìm app **Terminal** trong menu.
+
+  Hướng dẫn dưới đây dùng **Ubuntu/Debian** làm mặc định (lệnh `apt`). Nếu bạn dùng Fedora/Arch, mỗi step sẽ có lệnh tương đương.
+</Note>
+
+<Warning>
+  **Auto installer (`Install.command` / `Install.bat`) chỉ có cho macOS và Windows**. Trên Linux phải làm thủ công theo các bước dưới đây.
+</Warning>
+
+## Bạn sẽ cài 4 phần mềm
+
+| Phần mềm | Vai trò (dùng để làm gì?) | Bắt buộc? |
+| --- | --- | --- |
+| **Python 3.10+** | Ngôn ngữ chạy mọi tool & skills trong repo (asset index, audio dedupe, semantic mapper…) | Có |
+| **ffmpeg + ffprobe** | Bộ công cụ chuẩn để đọc/cắt/ghép audio và video. Mọi pipeline media đều cần | Có |
+| **Node.js 20+ + npm** | Chạy renderer **Remotion** (viết video bằng React) khi tới bước render cuối | Cần nếu sẽ render |
+| **Git** | Tải code mới về (`git clone`) và update sau này (`git pull`) | Có (trừ khi tải tarball) |
+
+<Tip>
+  Không cần nhớ hết. Mỗi phần mềm đều có 1 lệnh ngắn ở dưới — chép-dán là xong.
+</Tip>
+
+## Các bước
+
+<Steps>
+  <Step title="Cài 4 phần mềm bằng package manager">
+    **Package manager là gì?** Là "App Store của terminal Linux" — mỗi distro có 1 cái: Ubuntu/Debian dùng `apt`, Fedora dùng `dnf`, Arch dùng `pacman`.
+
+    **Ubuntu / Debian / Mint / Pop!_OS:**
+
+    ```bash
+    sudo apt update
+    sudo apt install -y python3 python3-venv python3-pip ffmpeg nodejs npm git
+    ```
+
+    <Note>
+      - `python3` + `python3-venv` + `python3-pip` — Python kèm module `venv` (môi trường ảo) và `pip` (cài thư viện).
+      - `ffmpeg` — kèm luôn `ffprobe`.
+      - `nodejs` + `npm` — Node và package manager `npm`.
+      - `git` — Git CLI.
+    </Note>
+
+    <AccordionGroup>
+      <Accordion title="Fedora / RHEL / CentOS">
+        ```bash
+        sudo dnf install -y python3 python3-pip ffmpeg nodejs npm git
+        ```
+      </Accordion>
+      <Accordion title="Arch / Manjaro / EndeavourOS">
+        ```bash
+        sudo pacman -Syu --needed python python-pip ffmpeg nodejs npm git
+        ```
+      </Accordion>
+      <Accordion title="openSUSE">
+        ```bash
+        sudo zypper install python3 python3-pip ffmpeg nodejs npm git
+        ```
+      </Accordion>
+    </AccordionGroup>
+
+    Verify:
+
+    ```bash
+    python3 --version    # phải >= 3.10
+    ffmpeg -version
+    node --version       # phải >= 20
+    git --version
+    ```
+
+    <Warning>
+      **Node trong apt cũ (Ubuntu 22.04 trở về trước) thường < 20**. Nếu `node --version` < 20, cài qua [NodeSource](https://github.com/nodesource/distributions):
+
+      ```bash
+      curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+      sudo apt install -y nodejs
+      ```
+    </Warning>
+  </Step>
+
+  <Step title="Tải repo về máy">
+    ```bash
+    cd ~
+    git clone https://github.com/bachdyon/video-automator-skills
+    cd video-automator-skills
+    ```
+
+    Sau lệnh này, terminal đang đứng trong `~/video-automator-skills/`. Mọi lệnh dưới đây đều chạy ở đây.
+
+    <Tip>
+      Không có Git? Tải tarball thủ công: vào `https://github.com/bachdyon/video-automator-skills` → bấm **Code** → **Download ZIP** → giải nén → `cd` vào thư mục giải nén.
+    </Tip>
+  </Step>
+
+  <Step title="Tạo môi trường Python riêng (.venv) + cài thư viện">
+    **Tại sao cần `.venv`?** Để cài đặt thư viện Python của repo này **không đè lên** Python hệ thống — sau này muốn xoá repo chỉ cần xoá folder, không ảnh hưởng máy. Một số distro (Debian 12, Ubuntu 23.04+) còn **bắt buộc** phải dùng venv.
+
+    ```bash
+    python3 -m venv .venv
+    .venv/bin/python -m pip install --upgrade pip
+    .venv/bin/pip install -r tools/asset_index/requirements.txt
+    ```
+
+    <Note>
+      - `python3 -m venv .venv` — tạo folder ẩn `.venv/` chứa bản Python riêng cho repo.
+      - `.venv/bin/python -m pip install --upgrade pip` — nâng cấp `pip` (trình quản lý thư viện) trong `.venv` lên bản mới.
+      - `pip install -r tools/asset_index/requirements.txt` — đọc danh sách thư viện trong file `requirements.txt` rồi cài tự động.
+    </Note>
+
+    <Warning>
+      **Nếu `apsw` build thất bại** (lỗi `error: command 'gcc' failed`): cài thêm dev packages.
+
+      Ubuntu/Debian:
+      ```bash
+      sudo apt install -y build-essential python3-dev libsqlite3-dev
+      ```
+
+      Fedora:
+      ```bash
+      sudo dnf install gcc python3-devel sqlite-devel
+      ```
+
+      Rồi chạy lại lệnh `pip install` ở trên.
+    </Warning>
+  </Step>
+
+  <Step title="Tạo file .env và điền API keys">
+    **API key là gì?** Là "mật khẩu" để repo gọi dịch vụ AI (OpenAI, Gemini). Mỗi lần phân tích ảnh/video, repo gửi yêu cầu đến server OpenAI/Gemini — server kiểm tra key trước khi trả lời.
+
+    Tạo file `.env` từ template có sẵn:
+
+    ```bash
+    cp env.example .env
+    nano .env    # hoặc vim, code, hoặc editor bạn thích
+    ```
+
+    Điền vào 4 giá trị:
+
+    ```env
+    OPENAI_API_KEY=sk-...
+    GEMINI_API_KEY=...
+    AUSYNCLAB_API_KEY=...
+    AUSYNCLAB_VOICE_ID=...
+    ```
+
+    Cách lấy từng key xem ở [Cấu hình API keys](/configuration/env) — có link tạo key miễn phí cho từng dịch vụ.
+
+    <Warning>
+      File `.env` chứa "mật khẩu" — không share, không commit lên Git public. Repo đã có sẵn `.gitignore` để tránh accident, nhưng vẫn nên cẩn thận.
+    </Warning>
+  </Step>
+
+  <Step title="Cài Remotion skill (chỉ khi sẽ render Remotion)">
+    Bước này **bỏ qua** nếu bạn chưa render video Remotion.
+
+    ```bash
+    bash scripts/ensure-remotion-skill.sh
+    ```
+
+    Script này tự cài skill `$remotion-best-practices` vào folder `.agents/skills/` — khi agent (Cursor, Claude Code) đụng tới Remotion sẽ đọc skill này để biết best practice.
+  </Step>
+
+  <Step title="Chạy watcher (manual hoặc systemd)">
+    **Watcher là gì?** Là chương trình chạy ngầm — mỗi khi bạn drop file vào `raw_assets/`, watcher tự phát hiện, gọi AI phân tích, lưu vào DB. Không cần bật/tắt thủ công.
+
+    Linux có 2 cách chạy watcher, tuỳ nhu cầu:
+
+    <Tabs>
+      <Tab title="Cách 1 — Chạy tay (đơn giản)">
+        Chạy trực tiếp trong terminal — đóng terminal là watcher tắt.
+
+        ```bash
+        .venv/bin/python -m tools.asset_index.watcher
+        ```
+
+        Khi muốn nó chạy ngầm cả khi đóng terminal, dùng `tmux` hoặc `screen`:
+
+        ```bash
+        tmux new -s vas
+        # trong tmux:
+        .venv/bin/python -m tools.asset_index.watcher
+        # detach: Ctrl+B rồi D
+        # quay lại: tmux attach -t vas
+        ```
+      </Tab>
+
+      <Tab title="Cách 2 — systemd user service (luôn bật)">
+        **systemd là gì?** Là cơ chế chuẩn của Linux để quản lý chương trình chạy ngầm — tự bật khi đăng nhập, tự restart khi crash.
+
+        Tạo file service:
+
+        ```bash
+        mkdir -p ~/.config/systemd/user
+        cat > ~/.config/systemd/user/vas-watcher.service <<EOF
+        [Unit]
+        Description=Video Automator Skills — Asset Index Watcher
+        After=network.target
+
+        [Service]
+        Type=simple
+        WorkingDirectory=$HOME/video-automator-skills
+        ExecStart=$HOME/video-automator-skills/.venv/bin/python -m tools.asset_index.watcher
+        Restart=on-failure
+        RestartSec=5
+
+        [Install]
+        WantedBy=default.target
+        EOF
+        ```
+
+        Bật:
+
+        ```bash
+        systemctl --user daemon-reload
+        systemctl --user enable --now vas-watcher.service
+        systemctl --user status vas-watcher.service
+        ```
+
+        <Tip>
+          Để watcher tự bật ngay cả khi chưa login graphical (server / SSH-only):
+
+          ```bash
+          sudo loginctl enable-linger $USER
+          ```
+        </Tip>
+      </Tab>
+    </Tabs>
+
+    Kiểm tra watcher đã bật:
+
+    ```bash
+    cat .asset_index/state.json
+    ```
+
+    Phải có `pid` (số > 0) và `last_error: null`. Nếu fail, xem [Khắc phục sự cố](/troubleshooting).
+  </Step>
+
+  <Step title="Verify — test cuối">
+    Test cả pipeline đã sẵn sàng:
+
+    1. Copy 1 ảnh bất kỳ vào folder `raw_assets/images/`.
+    2. Đợi ~5-10 giây (watcher debounce + Gemini phân tích + OpenAI embed).
+    3. Search bằng từ khoá khớp nội dung ảnh:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.search "<từ khoá liên quan ảnh>" --top 5
+    ```
+
+    Phải trả về ≥ 1 kết quả với `score > 0.5`. Nếu không → đọc [Khắc phục sự cố](/troubleshooting).
+  </Step>
+</Steps>
+
+## Lưu ý đặc thù Linux
+
+<AccordionGroup>
+  <Accordion title="inotify watcher giới hạn (lỗi khi drop nhiều file cùng lúc)">
+    Linux dùng **inotify** để theo dõi file thay đổi. Mặc định giới hạn ~8K file per user. Nếu repo + assets > giới hạn này, watcher báo lỗi `inotify watch limit reached`.
+
+    Tăng limit:
+
+    ```bash
+    echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+    sudo sysctl -p
+    ```
+  </Accordion>
+
+  <Accordion title="apsw build fail">
+    Nếu `pip install apsw` fail (đặc biệt trên Alpine, Arch tối thiểu): cài SQLite + headers + GCC trước. Xem [Bước 3](#step-3) ở trên.
+  </Accordion>
+
+  <Accordion title="Network drive (NFS, SMB, sshfs) không nhận file mới">
+    inotify chỉ hoạt động trên filesystem local. Nếu `raw_assets/` nằm trên NFS/SMB/sshfs, watcher sẽ không thấy file mới. Có 2 cách:
+
+    1. Đặt `raw_assets/` trên local disk (khuyến nghị).
+    2. Bật polling mode (chậm hơn nhưng work với mọi FS):
+       ```bash
+       .venv/bin/python -m tools.asset_index.watcher --polling --poll-interval 5
+       ```
+  </Accordion>
+
+  <Accordion title="Chạy trên server không có GUI">
+    Hoàn toàn ổn. Dùng [Cách 2 — systemd user service](#) ở trên + `loginctl enable-linger`. SSH vào và `systemctl --user status vas-watcher` để check.
+  </Accordion>
+</AccordionGroup>
+
+## Xong rồi! Tiếp theo làm gì?
+
+<Columns cols={2}>
+  <Card title="Hiểu các API keys" icon="key" href="/configuration/env">
+    Vai trò từng key, link tạo, giới hạn quota miễn phí.
+  </Card>
+  <Card title="Sử dụng cơ bản" icon="play" href="/usage/index">
+    Drop file → search → status — workflow hằng ngày.
+  </Card>
+  <Card title="Cấu trúc dự án" icon="folder-tree" href="/configuration/structure">
+    Hiểu vai trò các thư mục `skills/`, `jobs/`, `tools/`.
+  </Card>
+  <Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+    8 lỗi hay gặp + cách xử lý.
+  </Card>
+</Columns>

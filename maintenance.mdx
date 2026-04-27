@@ -1,0 +1,182 @@
+---
+title: "Cập nhật & Gỡ cài đặt"
+description: "Update repo + deps + service, hoặc uninstall sạch"
+icon: "screwdriver-wrench"
+---
+
+## Cập nhật
+
+<Steps>
+  <Step title="Pull code mới">
+    ```bash
+    cd video-automator-skills
+    git pull
+    ```
+  </Step>
+
+  <Step title="Update Python deps">
+    ```bash
+    .venv/bin/pip install --upgrade -r tools/asset_index/requirements.txt
+    ```
+
+    <Tip>
+      Nếu `requirements.txt` thêm dep mới, lệnh trên sẽ tự cài. Nếu pin version đổi, lệnh upgrade pin theo version mới.
+    </Tip>
+  </Step>
+
+  <Step title="Restart watcher service">
+    Để watcher load code Python mới:
+
+    <AccordionGroup>
+      <Accordion icon="apple" title="macOS">
+        ```bash
+        .venv/bin/python -m tools.asset_index.service stop
+        .venv/bin/python -m tools.asset_index.service start
+        ```
+      </Accordion>
+
+      <Accordion icon="windows" title="Windows">
+        ```powershell
+        schtasks /end /tn VideoAgentAssetIndex
+        schtasks /run /tn VideoAgentAssetIndex
+        ```
+      </Accordion>
+
+      <Accordion icon="linux" title="Linux">
+        ```bash
+        systemctl --user restart video-agent-asset-index
+        ```
+      </Accordion>
+    </AccordionGroup>
+  </Step>
+
+  <Step title="Verify">
+    ```bash
+    cat .asset_index/state.json
+    ```
+
+    `pid` phải > 0 và `watcher_started_at` phải gần thời điểm restart. Nếu fail → đọc `logs/watcher.err.log`.
+  </Step>
+</Steps>
+
+<Note>
+  Cập nhật code thường không yêu cầu rebuild DB. Nếu update đổi schema (hiếm), changelog sẽ note rõ migration step.
+</Note>
+
+## Migration sau khi đổi schema
+
+Nếu thay đổi `schema.sql` (ví dụ thêm cột, đổi dim embedding):
+
+1. Backup DB:
+
+   ```bash
+   cp .asset_index/index.db .asset_index/index.db.bak
+   ```
+
+2. Xoá DB:
+
+   ```bash
+   rm .asset_index/index.db
+   ```
+
+3. Re-scan toàn bộ:
+
+   ```bash
+   .venv/bin/python -m tools.asset_index.watcher --scan-on-start
+   ```
+
+   Vì idempotency dựa trên SHA-256, mọi file sẽ được re-analyze + re-embed (tốn LLM call).
+
+## Gỡ cài đặt
+
+### Cách 1 — Uninstall.command / Uninstall.bat
+
+<AccordionGroup>
+  <Accordion icon="apple" title="macOS">
+    Double-click `setup/Uninstall.command`. Script sẽ:
+
+    1. Stop + remove launchd service.
+    2. Hỏi xác nhận trước khi xoá `.asset_index/`, `.venv/`, `.env`.
+    3. Giữ nguyên repo và mọi file nguồn.
+  </Accordion>
+
+  <Accordion icon="windows" title="Windows">
+    Double-click `setup\Uninstall.bat`. Tương tự macOS — gỡ Task Scheduler entry, prompt xoá runtime files.
+  </Accordion>
+</AccordionGroup>
+
+### Cách 2 — Manual
+
+<Steps>
+  <Step title="Stop + uninstall service">
+    ```bash
+    .venv/bin/python -m tools.asset_index.service uninstall
+    ```
+
+    Verify:
+
+    - macOS: `launchctl list | grep com.video-agent` → không có output.
+    - Windows: `schtasks /query /tn VideoAgentAssetIndex` → "Task does not exist".
+    - Linux: `systemctl --user status video-agent-asset-index` → not-found.
+  </Step>
+
+  <Step title="Xoá runtime files">
+    ```bash
+    rm -rf .asset_index/   # DB + state + logs
+    rm -rf .venv/          # virtualenv
+    rm -f .env             # API keys
+    ```
+  </Step>
+
+  <Step title="Optional — xoá nguồn">
+    Nếu muốn gỡ hoàn toàn:
+
+    ```bash
+    cd ..
+    rm -rf video-automator-skills/
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  Xoá `.env` = mất API keys đã setup. Backup trước nếu muốn dùng lại sau.
+</Warning>
+
+## Backup full repo
+
+Để move sang máy khác:
+
+```bash
+tar --exclude=.venv --exclude=.asset_index --exclude=node_modules \
+  -czf video-automator-backup.tar.gz video-automator-skills/
+```
+
+Trên máy mới: extract → chạy lại bootstrap → re-scan để rebuild index.
+
+## Kiểm tra dung lượng
+
+DB + raw_assets có thể lớn nhanh. Check size:
+
+```bash
+du -sh .asset_index/ raw_assets/
+```
+
+Nếu DB > 1GB, cân nhắc:
+
+- Xoá file không còn cần trong `raw_assets/` → re-scan để cleanup `assets` rows orphaned.
+- Vacuum DB:
+
+  ```bash
+  .venv/bin/python -c "import apsw; apsw.Connection('.asset_index/index.db').execute('VACUUM')"
+  ```
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+    Lỗi sau khi update.
+  </Card>
+  <Card title="Đóng góp" icon="heart" href="/contributing">
+    Submit feedback / patch về repo.
+  </Card>
+</Columns>

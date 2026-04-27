@@ -1,0 +1,227 @@
+---
+title: "Cài đặt đầy đủ — Windows"
+description: "Hướng dẫn cài full toàn bộ phần mềm cần thiết trên Windows, từng bước có giải thích để người mới làm quen với PowerShell cũng theo được."
+icon: "windows"
+---
+
+<Note>
+  Trang này dành cho **bạn nào muốn dùng full pipeline** — có cả tạo voice tự động bằng AI, render video Remotion, chứ không chỉ index asset. Nếu bạn chỉ cần Asset Index (drop ảnh/video → search), dùng [Bắt đầu nhanh](/quickstart) sẽ nhẹ hơn (auto installer làm hộ phần lớn).
+
+  Toàn bộ lệnh trong trang này gõ trong **PowerShell as Administrator**. Mở: nhấn `Win + X` → chọn **Terminal (Admin)** hoặc **Windows PowerShell (Admin)**.
+</Note>
+
+<Warning>
+  **Bật Long Paths nếu đường dẫn repo > 260 ký tự** (Windows mặc định cấm path quá dài, gặp khi cài trong OneDrive / Desktop sâu):
+
+  Mở `gpedit.msc` → `Computer Configuration` → `Administrative Templates` → `System` → `Filesystem` → bật **Enable Win32 long paths** → restart.
+</Warning>
+
+## Bạn sẽ cài 4 phần mềm
+
+| Phần mềm | Vai trò (dùng để làm gì?) | Bắt buộc? |
+| --- | --- | --- |
+| **Python 3.10+** | Ngôn ngữ chạy mọi tool & skills trong repo (asset index, audio dedupe, semantic mapper…) | Có |
+| **ffmpeg + ffprobe** | Bộ công cụ chuẩn để đọc/cắt/ghép audio và video. Mọi pipeline media đều cần | Có |
+| **Node.js 20+ + npm** | Chạy renderer **Remotion** (viết video bằng React) khi tới bước render cuối | Cần nếu sẽ render |
+| **Git** | Tải code mới về (`git clone`) và update sau này (`git pull`) | Có (trừ khi tải ZIP) |
+
+<Tip>
+  Không cần nhớ hết. Mỗi phần mềm đều có 1 lệnh ngắn ở dưới — chép-dán là xong.
+</Tip>
+
+## Các bước
+
+<Steps>
+  <Step title="Cài 4 phần mềm bằng winget">
+    **winget là gì?** Là "Microsoft Store cho terminal" — đi kèm sẵn Windows 10/11, gõ 1 lệnh là cài xong, không phải tải `.msi` từng cái.
+
+    Mở **PowerShell as Administrator**, dán lần lượt:
+
+    ```powershell
+    winget install Python.Python.3.12
+    winget install Gyan.FFmpeg
+    winget install OpenJS.NodeJS
+    winget install Git.Git
+    ```
+
+    <Note>
+      `Python.Python.3.12` — Python bản ổn định nhất hiện tại.
+      `Gyan.FFmpeg` — package ffmpeg phổ biến cho Windows, kèm luôn `ffprobe`.
+      `OpenJS.NodeJS` — Node.js, kèm luôn `npm`.
+      `Git.Git` — Git CLI chính thức.
+    </Note>
+
+    Cài xong, **đóng PowerShell và mở lại** (để PATH cập nhật), rồi verify:
+
+    ```powershell
+    python --version    # phải >= 3.10, ví dụ Python 3.12.1
+    ffmpeg -version     # in nhiều dòng config
+    node --version      # phải >= 20, ví dụ v20.11.0
+    git --version       # ví dụ git version 2.43.0
+    ```
+
+    <Tip>
+      **Không có winget?** (Win 10 cũ) — dùng [Chocolatey](https://chocolatey.org/install) thay:
+
+      ```powershell
+      choco install python ffmpeg nodejs git -y
+      ```
+    </Tip>
+  </Step>
+
+  <Step title="Tải repo về máy">
+    Chọn 1 trong 2 cách (xem chi tiết trong [Bắt đầu nhanh — Bước 1](/quickstart)):
+
+    **Cách nhanh (Git, khuyến nghị):**
+
+    ```powershell
+    cd $HOME
+    git clone https://github.com/bachdyon/video-automator-skills
+    cd video-automator-skills
+    ```
+
+    Sau lệnh này, PowerShell đang đứng trong thư mục `C:\Users\<bạn>\video-automator-skills\`. Mọi lệnh phía dưới đều chạy ở đây.
+  </Step>
+
+  <Step title="Tạo môi trường Python riêng (.venv) + cài thư viện">
+    **Tại sao cần `.venv`?** Để cài đặt thư viện Python của repo này **không đè lên** Python hệ thống — sau này muốn xoá repo chỉ cần xoá folder, không ảnh hưởng máy.
+
+    ```powershell
+    python -m venv .venv
+    .venv\Scripts\python -m pip install --upgrade pip
+    .venv\Scripts\pip install -r tools\asset_index\requirements.txt
+    ```
+
+    <Note>
+      - `python -m venv .venv` — tạo folder ẩn `.venv\` chứa bản Python riêng cho repo.
+      - `.venv\Scripts\python -m pip install --upgrade pip` — nâng cấp `pip` (trình quản lý thư viện) trong `.venv` lên bản mới.
+      - `pip install -r tools\asset_index\requirements.txt` — đọc danh sách thư viện trong file `requirements.txt` rồi cài tự động.
+    </Note>
+
+    Bước này tải mạng nhiều, cần ~30-60 giây tuỳ tốc độ internet.
+  </Step>
+
+  <Step title="Tạo file .env và điền API keys">
+    **API key là gì?** Là "mật khẩu" để repo gọi dịch vụ AI (OpenAI, Gemini). Mỗi lần phân tích ảnh/video, repo gửi yêu cầu đến server OpenAI/Gemini — server kiểm tra key trước khi trả lời.
+
+    Tạo file `.env` từ template có sẵn:
+
+    ```powershell
+    copy env.example .env
+    ```
+
+    Mở `.env` bằng Notepad:
+
+    ```powershell
+    notepad .env
+    ```
+
+    Điền vào 4 giá trị:
+
+    ```env
+    OPENAI_API_KEY=sk-...
+    GEMINI_API_KEY=...
+    AUSYNCLAB_API_KEY=...
+    AUSYNCLAB_VOICE_ID=...
+    ```
+
+    Cách lấy từng key xem ở [Cấu hình API keys](/configuration/env) — có link tạo key miễn phí cho từng dịch vụ.
+
+    <Warning>
+      File `.env` chứa "mật khẩu" — không share, không commit lên Git public. Repo đã có sẵn `.gitignore` để tránh accident, nhưng vẫn nên cẩn thận.
+    </Warning>
+  </Step>
+
+  <Step title="Cài Remotion skill (chỉ khi sẽ render Remotion)">
+    Bước này **bỏ qua** nếu bạn chưa render video Remotion. Lệnh chạy bằng Git Bash hoặc WSL (vì là `.sh`):
+
+    ```bash
+    bash scripts/ensure-remotion-skill.sh
+    ```
+
+    Script này tự cài skill `$remotion-best-practices` vào folder `.agents\skills\` — khi agent (Cursor, Claude Code) đụng tới Remotion sẽ đọc skill này để biết best practice.
+
+    <Tip>
+      Không có Git Bash? Khi cài Git ở bước 1, mặc định đã có **Git Bash** trong Start Menu. Hoặc bạn có thể tự chạy lệnh `npx skills add remotion-dev/skills --yes` (lệnh thay thế) trong PowerShell.
+    </Tip>
+  </Step>
+
+  <Step title="Đăng ký watcher chạy nền (luôn bật)">
+    **Watcher là gì?** Là chương trình chạy ngầm — mỗi khi bạn drop file vào `raw_assets\`, watcher tự phát hiện, gọi AI phân tích, lưu vào DB. Không cần bật/tắt thủ công.
+
+    Đăng ký watcher với Windows để **tự bật mỗi khi đăng nhập**:
+
+    ```powershell
+    .venv\Scripts\python -m tools.asset_index.service install
+    ```
+
+    Lệnh này tạo task `VideoAgentAssetIndex` trong **Task Scheduler** (cơ chế chuẩn của Windows để chạy chương trình ngầm).
+
+    Kiểm tra watcher đã bật:
+
+    ```powershell
+    .venv\Scripts\python -m tools.asset_index.service status
+    type .asset_index\state.json
+    ```
+
+    `state.json` phải có `pid` (số > 0) và `last_error: null`. Nếu fail, xem [Khắc phục sự cố](/troubleshooting).
+  </Step>
+
+  <Step title="Verify — test cuối">
+    Test cả pipeline đã sẵn sàng:
+
+    1. Copy 1 ảnh bất kỳ vào folder `raw_assets\images\`.
+    2. Đợi ~5-10 giây (watcher debounce + Gemini phân tích + OpenAI embed).
+    3. Search bằng từ khoá khớp nội dung ảnh:
+
+    ```powershell
+    .venv\Scripts\python -m tools.asset_index.search "<từ khoá liên quan ảnh>" --top 5
+    ```
+
+    Phải trả về ≥ 1 kết quả với `score > 0.5`. Nếu không → đọc [Khắc phục sự cố](/troubleshooting).
+  </Step>
+</Steps>
+
+## Lưu ý đặc thù Windows
+
+<AccordionGroup>
+  <Accordion title="Tiếng Việt vỡ font trong terminal">
+    Tất cả `.bat` đã có `chcp 65001` để dùng UTF-8. Nếu chạy thủ công trong PowerShell và thấy chữ vỡ:
+
+    ```powershell
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    chcp 65001
+    ```
+
+    Hoặc set vĩnh viễn cho PowerShell session:
+
+    ```powershell
+    $env:PYTHONIOENCODING = "utf-8"
+    ```
+  </Accordion>
+
+  <Accordion title="Defender chặn .bat">
+    Nếu Windows Defender chặn `setup\Install.bat`: chuột phải file → **Properties** → tick **Unblock** → **Apply**.
+  </Accordion>
+
+  <Accordion title="WSL có dùng được không?">
+    Có. Trong WSL (Ubuntu trong Windows), làm theo hướng dẫn [Linux](/installation/linux). Nhưng nếu đặt repo ở `/mnt/c/...` (filesystem Windows mount sang Linux), watcher không nhận file mới — phải dùng `--polling` hoặc đặt repo trong filesystem WSL native (`~/`).
+  </Accordion>
+</AccordionGroup>
+
+## Xong rồi! Tiếp theo làm gì?
+
+<Columns cols={2}>
+  <Card title="Hiểu các API keys" icon="key" href="/configuration/env">
+    Vai trò từng key, link tạo, giới hạn quota miễn phí.
+  </Card>
+  <Card title="Sử dụng cơ bản" icon="play" href="/usage/index">
+    Drop file → search → status — workflow hằng ngày.
+  </Card>
+  <Card title="Cấu trúc dự án" icon="folder-tree" href="/configuration/structure">
+    Hiểu vai trò các thư mục `skills\`, `jobs\`, `tools\`.
+  </Card>
+  <Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+    8 lỗi hay gặp + cách xử lý.
+  </Card>
+</Columns>

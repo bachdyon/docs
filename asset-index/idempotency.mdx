@@ -1,0 +1,126 @@
+---
+title: "Idempotency"
+description: "Vì sao re-index file không tốn LLM call và rename không trigger re-analyze"
+icon: "recycle"
+---
+
+Asset Index thiết kế **idempotent** ở mọi tầng — cùng input đem đi process N lần ra cùng output, không tốn thêm LLM call.
+
+## Cơ chế
+
+Trong `router.process_file()`:
+
+<Steps>
+  <Step title="Compute SHA-256 của file">
+    File được hash streaming (chunk 1MB) — hoạt động tốt với file 4GB+.
+
+    ```python
+    content_hash = sha256_file(abs_path)
+    ```
+  </Step>
+
+  <Step title="Check DB: hash có trong assets chưa?">
+    ```sql
+    SELECT id, mtime FROM assets WHERE id = ?
+    ```
+
+    Lấy ra row khớp content_hash.
+  </Step>
+
+  <Step title="Decision">
+    - **Hash chưa có** → analyze + embed + insert → `status: ok`.
+    - **Hash đã có + mtime khớp** → skip (giả định không có gì đổi) → `status: skipped`.
+    - **Hash đã có + mtime khác** → file metadata đổi (di chuyển, rename) → update `file_path`, `file_name`, `mtime` nhưng **giữ nguyên embedding** → `status: skipped` (no LLM call).
+    - **`--force` flag** → bỏ qua cả 3 case trên, force re-analyze.
+  </Step>
+</Steps>
+
+## Tại sao dùng SHA-256 thay vì path?
+
+Path đổi thường xuyên:
+
+- User rename file: `old.jpg` → `new.jpg`.
+- User di chuyển folder: `raw_assets/images/test.jpg` → `raw_assets/images/2026/test.jpg`.
+- User copy file ra job: `raw_assets/...` → `jobs/.../input/raw_assets/...`.
+
+SHA-256 chỉ phụ thuộc vào **bytes**, nên 1 lần phân tích cho mọi vị trí.
+
+<Tip>
+  Cùng 1 file copy ra 5 chỗ → 5 row trong `assets` (vì `file_path` UNIQUE), nhưng cùng 1 `id` (= hash), cùng 1 row trong `assets_vec`, cùng 1 embedding.
+
+  Lưu ý: vì primary key là `id` (hash), implementation chỉ giữ 1 row đầu. File copy thứ 2 sẽ update `file_path` của row có sẵn, không tạo row mới. Xem code [`store.upsert_asset()`](https://github.com/bachdyon/video-automator-skills/blob/main/tools/asset_index/store.py) để biết logic chính xác.
+</Tip>
+
+## Tương tác với watcher
+
+Watcher đôi khi nhận **nhiều event cho cùng 1 file** (FSEvents/inotify quirk):
+
+- File copy lớn → nhiều `on_modified` event trong khi đang ghi.
+- Editor save → `on_created` + `on_deleted` + `on_created` lại (atomic save).
+
+`watcher.py` xử lý bằng:
+
+1. **Debounce**: trễ 1.5s (mac) / 2.5s (win) sau event cuối cùng — đợi file ổn định.
+2. **Size-stable check**: đọc size 2 lần cách 100ms; nếu khác → file đang copy → đợi tiếp.
+3. **Single-instance lock** trong `state.json` — không cho 2 watcher chạy song song.
+
+Sau debounce, watcher gọi `process_file()` — nếu file đã được index ở event trước, hash khớp → skip ngay.
+
+## Tương tác với scan-on-start
+
+Khi khởi động với `--scan-on-start`, watcher walk recursive các root đang watch và gọi `process_file()` cho mỗi file. Nhờ idempotency:
+
+- File đã có trong DB → skip (no LLM call).
+- File mới drop khi watcher offline → index.
+
+Nên thêm `--scan-on-start` vào service config — không tốn gì khi watcher đã đồng bộ.
+
+## Process log
+
+Mọi lần `process_file()` chạy đều ghi vào `process_log` (xem [File runtime](/asset-index/files)). Audit trail hữu ích khi debug:
+
+```sql
+SELECT file_path, status, error, ran_at
+FROM process_log
+WHERE file_path LIKE '%test.jpg'
+ORDER BY ran_at DESC
+LIMIT 10;
+```
+
+Xem được:
+
+- Lần process đầu tiên thành công ở đâu.
+- Có bao nhiêu lần skip (idempotent).
+- Lỗi gần nhất.
+
+## Force re-index
+
+Nếu Gemini đã update model hoặc bạn muốn refresh summary:
+
+```bash
+.venv/bin/python -m tools.asset_index.router \
+  raw_assets/images/test.jpg \
+  --force
+```
+
+Hoặc batch:
+
+```bash
+find raw_assets -type f \( -name "*.jpg" -o -name "*.png" \) | \
+  xargs -I{} .venv/bin/python -m tools.asset_index.router {} --force
+```
+
+<Warning>
+  `--force` re-call Gemini + OpenAI cho từng file → **tốn quota**. Dùng có chủ ý.
+</Warning>
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Cross-platform" icon="globe" href="/asset-index/cross-platform">
+    FSEvents fallback, cp65001, apsw.
+  </Card>
+  <Card title="Mở rộng" icon="plus" href="/asset-index/extending">
+    Thêm format, đổi embed model.
+  </Card>
+</Columns>

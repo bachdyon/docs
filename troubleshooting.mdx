@@ -1,0 +1,183 @@
+---
+title: "Khắc phục sự cố"
+description: "8 lỗi thường gặp và cách xử lý nhanh"
+icon: "wrench"
+---
+
+<AccordionGroup>
+  <Accordion title="ffmpeg / ffprobe không tìm thấy">
+    Bootstrap dừng với message `ffmpeg not found in PATH`.
+
+    **Nguyên nhân**: chưa cài ffmpeg, hoặc đã cài nhưng PATH không cập nhật.
+
+    **Xử lý**:
+
+    - macOS: `brew install ffmpeg` → đóng terminal mở lại.
+    - Windows: `winget install Gyan.FFmpeg` → đóng PowerShell mở lại. Hoặc add `C:\ProgramData\chocolatey\bin\` vào PATH thủ công.
+    - Linux: `sudo apt install ffmpeg` (Ubuntu/Debian) hoặc `sudo dnf install ffmpeg` (Fedora).
+
+    Verify: `ffmpeg -version` và `ffprobe -version`.
+  </Accordion>
+
+  <Accordion title="Watcher không chạy (state.json pid rỗng)">
+    `cat .asset_index/state.json` thấy `pid: null` hoặc thiếu hẳn.
+
+    **Nguyên nhân**: service install thất bại, hoặc service đã bị OS dừng.
+
+    **Xử lý**:
+
+    - **macOS**: `launchctl list | grep com.video-agent` — nếu không có, chạy lại `.venv/bin/python -m tools.asset_index.service install`.
+    - **Windows**: `schtasks /query /tn VideoAgentAssetIndex` — nếu không có hoặc Status = Disabled, chạy lại `service install`.
+    - **Linux**: `systemctl --user status video-agent-asset-index` — nếu inactive, `systemctl --user start video-agent-asset-index`.
+
+    Đọc log để biết lý do crash:
+
+    ```bash
+    tail -50 .asset_index/logs/watcher.err.log
+    ```
+  </Accordion>
+
+  <Accordion title="apsw / sqlite-vec lỗi load extension">
+    Khi chạy `tools.asset_index.watcher` hoặc `search` thấy:
+
+    ```
+    apsw.ExtensionLoadingError: not authorized
+    ```
+
+    **Nguyên nhân**: build `apsw` từ source bị disable extension loading.
+
+    **Xử lý**: force reinstall với extension enabled:
+
+    ```bash
+    .venv/bin/pip install --force-reinstall --no-binary :all: apsw
+    ```
+
+    Hoặc dùng wheel có sẵn:
+
+    ```bash
+    .venv/bin/pip install --upgrade --force-reinstall apsw
+    ```
+
+    Xem thêm [Cross-platform notes](/asset-index/cross-platform).
+  </Accordion>
+
+  <Accordion title="Tiếng Việt vỡ font trên Windows console">
+    Trong PowerShell hoặc cmd, chữ Việt hiển thị `?????` hoặc `Ä á?`.
+
+    **Nguyên nhân**: console codepage default `cp1252`.
+
+    **Xử lý**:
+
+    ```powershell
+    chcp 65001
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $env:PYTHONIOENCODING = "utf-8"
+    ```
+
+    Tất cả `.bat` đã có `chcp 65001` ở đầu — nếu vẫn vỡ, kiểm tra Windows Terminal settings → Profile → Use UTF-8 encoding.
+  </Accordion>
+
+  <Accordion title="API key invalid (401 Unauthorized)">
+    Watcher log:
+
+    ```
+    OpenAI API error: Incorrect API key provided
+    Gemini API error: API_KEY_INVALID
+    ```
+
+    **Xử lý**:
+
+    - Mở `.env`, kiểm tra key có dán đúng không (không có khoảng trắng đầu/cuối, không thiếu prefix `sk-`).
+    - Test key trực tiếp:
+
+      ```bash
+      .venv/bin/python -c "import os; from openai import OpenAI; print(OpenAI(api_key=os.getenv('OPENAI_API_KEY')).models.list().data[0].id)"
+      ```
+
+    - Nếu key đúng nhưng vẫn 401 → key đã expire/revoke. Tạo key mới.
+    - Nếu lỗi 429 (quota) → check dashboard, top up hoặc đợi reset.
+  </Accordion>
+
+  <Accordion title="DB hỏng / corrupt">
+    Lỗi:
+
+    ```
+    apsw.CorruptError: database disk image is malformed
+    ```
+
+    **Nguyên nhân**: máy crash giữa lúc ghi DB, hoặc xoá `index.db` khi watcher đang chạy.
+
+    **Xử lý**:
+
+    1. Stop watcher: `service stop`.
+    2. Backup DB cũ (phòng có data quý):
+
+       ```bash
+       cp .asset_index/index.db .asset_index/index.db.bak
+       ```
+    3. Xoá DB:
+
+       ```bash
+       rm .asset_index/index.db
+       ```
+    4. Start watcher với scan-on-start để rebuild:
+
+       ```bash
+       .venv/bin/python -m tools.asset_index.watcher --scan-on-start
+       ```
+
+    DB rebuild lại từ raw_assets. Tốn LLM call lại — chấp nhận trade-off.
+  </Accordion>
+
+  <Accordion title="Re-index file lỗi (status: failed)">
+    `cat .asset_index/state.json` thấy `last_error` non-null, hoặc query DB:
+
+    ```sql
+    SELECT * FROM process_log WHERE status = 'failed' ORDER BY ran_at DESC LIMIT 5;
+    ```
+
+    **Common causes**:
+
+    - File bị corrupt (download dở, copy lỗi). Xoá + drop lại.
+    - File quá lớn (Gemini limit ~2GB cho video). Cut nhỏ trước hoặc skip.
+    - Format unsupported. Xem [Mở rộng](/asset-index/extending) để add format.
+    - Network flap. Watcher có retry, nhưng nếu kéo dài, restart service.
+
+    Force re-index:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.router <path> --force
+    ```
+  </Accordion>
+
+  <Accordion title="Watcher không thấy file mới (sandbox / network drive)">
+    Drop file vào `raw_assets/` nhưng `processed_count` không tăng.
+
+    **Nguyên nhân**: filesystem không hỗ trợ inotify/FSEvents:
+
+    - Ổ mạng (NFS, sshfs, AFP, SMB).
+    - Sandbox container (Docker volume mount).
+    - WSL ↔ Windows filesystem (`/mnt/c/...`).
+
+    **Xử lý**: dùng polling backend:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.watcher --polling --scan-on-start
+    ```
+
+    Nếu chạy qua service: edit launchd plist / Task Scheduler entry để thêm `--polling` vào ExecStart, sau đó re-install service.
+
+    Trade-off: polling tốn CPU hơn FSEvents/inotify nhưng work everywhere.
+  </Accordion>
+</AccordionGroup>
+
+## Cần thêm trợ giúp?
+
+<Columns cols={2}>
+  <Card title="Mở Issue trên GitHub" icon="github" href="https://github.com/bachdyon/video-automator-skills/issues">
+    Cung cấp OS, Python version, log, state.json.
+  </Card>
+  <Card title="Đọc CONTRIBUTING" icon="heart" href="/contributing">
+    Cách báo bug đầy đủ context.
+  </Card>
+</Columns>

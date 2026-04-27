@@ -1,0 +1,117 @@
+---
+title: "Tìm asset"
+description: "Truy vấn ngữ nghĩa bằng tiếng Việt qua Search.command hoặc CLI"
+icon: "magnifying-glass"
+---
+
+## Cách 1 — Search.command / Search.bat (cho người mới)
+
+<AccordionGroup>
+  <Accordion icon="apple" title="macOS">
+    Double-click `setup/Search.command` trong Finder.
+
+    Terminal mở, gõ truy vấn tiếng Việt rồi Enter:
+
+    ```
+    Nhập truy vấn: phong cảnh núi
+    ```
+
+    Top 5 kết quả khớp ngữ nghĩa nhất sẽ hiển thị, kèm path file và score.
+  </Accordion>
+
+  <Accordion icon="windows" title="Windows">
+    Double-click `setup\Search.bat`.
+
+    Terminal mở, gõ truy vấn tiếng Việt rồi Enter:
+
+    ```
+    Nhap truy van: phong canh nui
+    ```
+
+    <Tip>Nếu chữ vỡ font, đảm bảo terminal đang ở UTF-8 (`chcp 65001`).</Tip>
+  </Accordion>
+</AccordionGroup>
+
+## Cách 2 — CLI search (dev, có filter)
+
+```bash
+.venv/bin/python -m tools.asset_index.search "phong cảnh núi" --top 5
+```
+
+### Cờ thường dùng
+
+| Cờ | Vai trò | Ví dụ |
+| --- | --- | --- |
+| `--top N` | Số kết quả trả về (mặc định 5) | `--top 10` |
+| `--media TYPE` | Lọc theo media type | `--media image` / `video` / `audio` |
+| `--source SOURCE` | Lọc theo source | `--source raw_assets` / `jobs` |
+| `--job JOB_ID` | Chỉ tìm trong 1 job cụ thể | `--job 2026-04-25_001_test` |
+
+### Ví dụ
+
+<AccordionGroup>
+  <Accordion title="Chỉ tìm trong ảnh">
+    ```bash
+    .venv/bin/python -m tools.asset_index.search "người đang nói chuyện" \
+      --media image \
+      --top 10
+    ```
+  </Accordion>
+
+  <Accordion title="Chỉ tìm trong video của 1 job">
+    ```bash
+    .venv/bin/python -m tools.asset_index.search "cảnh quay drone" \
+      --media video \
+      --source jobs \
+      --job 2026-04-25_001_test
+    ```
+  </Accordion>
+
+  <Accordion title="Lọc theo asset toàn cục (raw_assets/)">
+    ```bash
+    .venv/bin/python -m tools.asset_index.search "nhạc buồn" \
+      --media audio \
+      --source raw_assets \
+      --top 3
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Cách 3 — Python API (cho skill khác gọi)
+
+```python
+from tools.asset_index.search import search_assets
+
+results = search_assets(
+    query="phong cảnh núi mùa thu",
+    top_k=5,
+    media_type="image",        # hoặc "video", "audio", None
+    source="raw_assets",       # hoặc "jobs", None
+)
+
+for r in results:
+    print(r.path, r.score, r.description)
+```
+
+## Tips để query hiệu quả
+
+<Tip>
+  Query càng cụ thể càng tốt. So sánh:
+
+  - ❌ "ảnh đẹp" — quá chung, score thấp
+  - ✅ "phong cảnh núi tuyết hoàng hôn" — match cao
+</Tip>
+
+<Tip>
+  Có thể query bằng tiếng Anh, mô hình embedding multilingual.
+</Tip>
+
+<Note>
+  Score càng cao càng giống. Score < 0.5 thường là noise — nên ignore.
+</Note>
+
+## Bước tiếp theo
+
+<Card title="Kiểm tra trạng thái" icon="heart-pulse" href="/usage/status">
+  Watcher đang chạy không, đã index bao nhiêu file.
+</Card>

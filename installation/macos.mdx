@@ -1,0 +1,201 @@
+---
+title: "Cài đặt đầy đủ — macOS"
+description: "Hướng dẫn cài full toàn bộ phần mềm cần thiết trên Mac, từng bước có giải thích để người mới làm quen với terminal cũng theo được."
+icon: "apple"
+---
+
+<Note>
+  Trang này dành cho **bạn nào muốn dùng full pipeline** — có cả tạo voice tự động bằng AI, render video Remotion, chứ không chỉ index asset. Nếu bạn chỉ cần Asset Index (drop ảnh/video → search), dùng [Bắt đầu nhanh](/quickstart) sẽ nhẹ hơn (auto installer làm hộ phần lớn).
+
+  Toàn bộ lệnh trong trang này gõ trong **Terminal** của Mac. Mở Terminal: `Cmd + Space` → gõ "Terminal" → Enter.
+</Note>
+
+## Bạn sẽ cài 4 phần mềm
+
+| Phần mềm | Vai trò (dùng để làm gì?) | Bắt buộc? |
+| --- | --- | --- |
+| **Python 3.10+** | Ngôn ngữ chạy mọi tool & skills trong repo (asset index, audio dedupe, semantic mapper…) | Có |
+| **ffmpeg + ffprobe** | Bộ công cụ chuẩn để đọc/cắt/ghép audio và video. Mọi pipeline media đều cần | Có |
+| **Node.js 20+ + npm** | Chạy renderer **Remotion** (viết video bằng React) khi tới bước render cuối | Chỉ cần nếu sẽ render video Remotion ra MP4. Bỏ qua nếu chỉ dùng Asset Index hoặc tự render bằng tool khác. |
+| **Git** | Tải code mới về (`git clone`) và update sau này (`git pull`) | Có (trừ khi tải ZIP) |
+
+<Tip>
+  Không cần nhớ hết. Mỗi phần mềm đều có 1 lệnh ngắn ở dưới — chép-dán là xong.
+</Tip>
+
+## Các bước
+
+<Steps>
+  <Step title="Cài Homebrew nếu chưa có">
+    **Homebrew là gì?** Là "App Store cho terminal" trên Mac — gõ 1 lệnh là cài xong phần mềm, không phải vào trang web tải `.dmg` từng cái. Mọi hướng dẫn macOS chuẩn đều bắt đầu bằng Homebrew.
+
+    Mở Terminal, dán lệnh sau và Enter:
+
+    ```bash
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    ```
+
+    Sau khi script chạy xong (~2-5 phút), nó sẽ in **2-3 dòng `Next steps:`** — đây là lệnh thêm `brew` vào PATH (để Terminal nhận lệnh `brew`). **Copy đúng các dòng đó từ output rồi chạy** — lệnh khác nhau giữa Mac Intel và Mac Apple Silicon (M1/M2/M3) nên không thể hardcode trước.
+
+    Verify Homebrew đã chạy được:
+
+    ```bash
+    brew --version
+    ```
+
+    Nếu hiện `Homebrew 4.x.x` là OK.
+  </Step>
+
+  <Step title="Cài 4 phần mềm trong 1 lệnh">
+    Khi đã có `brew`, cài cả 4 thứ trong 1 lệnh duy nhất:
+
+    ```bash
+    brew install python@3.12 ffmpeg node git
+    ```
+
+    <Note>
+      `python@3.12` — bản Python ổn định nhất hiện tại (mặc định macOS có Python cũ, không nên dùng).
+      `ffmpeg` — kèm luôn `ffprobe` (cùng 1 package).
+      `node` — kèm luôn `npm`.
+      `git` — kèm `git` CLI.
+    </Note>
+
+    Cài xong, verify từng thứ chạy được:
+
+    ```bash
+    python3 --version    # phải >= 3.10, ví dụ Python 3.12.1
+    ffmpeg -version      # in nhiều dòng config
+    node --version       # phải >= 20, ví dụ v20.11.0
+    git --version        # ví dụ git version 2.43.0
+    ```
+
+    Nếu lệnh nào báo `command not found`, mở Terminal mới (đóng cái cũ, mở lại) — đôi khi PATH chưa kịp cập nhật.
+  </Step>
+
+  <Step title="Tải repo về máy">
+    Chọn 1 trong 2 cách (xem chi tiết trong [Bắt đầu nhanh — Bước 1](/quickstart)):
+
+    **Cách nhanh (Git, khuyến nghị):**
+
+    ```bash
+    cd ~
+    git clone https://github.com/bachdyon/video-automator-skills
+    cd video-automator-skills
+    ```
+
+    Sau lệnh này, Terminal đang đứng trong thư mục `~/video-automator-skills/`. Mọi lệnh phía dưới đều chạy ở đây.
+  </Step>
+
+  <Step title="Tạo môi trường Python riêng (.venv) + cài thư viện">
+    **Tại sao cần `.venv`?** Để cài đặt thư viện Python của repo này **không đè lên** Python hệ thống — sau này muốn xoá repo chỉ cần xoá folder, không ảnh hưởng máy.
+
+    ```bash
+    python3 -m venv .venv
+    .venv/bin/pip install --upgrade pip
+    .venv/bin/pip install -r tools/asset_index/requirements.txt
+    ```
+
+    <Note>
+      - `python3 -m venv .venv` — tạo folder ẩn `.venv/` chứa bản Python riêng cho repo.
+      - `.venv/bin/pip install --upgrade pip` — nâng cấp `pip` (trình quản lý thư viện) trong `.venv` lên bản mới nhất.
+      - `pip install -r tools/asset_index/requirements.txt` — đọc danh sách thư viện trong file `requirements.txt` rồi cài tự động.
+    </Note>
+
+    Bước này tải mạng nhiều, cần ~30-60 giây tuỳ tốc độ internet.
+  </Step>
+
+  <Step title="Tạo file .env và điền API keys">
+    **API key là gì?** Là "mật khẩu" để repo gọi dịch vụ AI (OpenAI, Gemini). Mỗi lần phân tích ảnh/video, repo gửi yêu cầu đến server OpenAI/Gemini — server kiểm tra key trước khi trả lời.
+
+    Tạo file `.env` từ template có sẵn:
+
+    ```bash
+    cp env.example .env
+    ```
+
+    Mở `.env` bằng editor text bất kỳ (TextEdit, VS Code, nano…):
+
+    ```bash
+    open -e .env
+    ```
+
+    Điền vào 4 giá trị:
+
+    ```env
+    OPENAI_API_KEY=sk-...
+    GEMINI_API_KEY=...
+    AUSYNCLAB_API_KEY=...
+    AUSYNCLAB_VOICE_ID=...
+    ```
+
+    Cách lấy từng key xem ở [Cấu hình API keys](/configuration/env) — có link tạo key miễn phí cho từng dịch vụ.
+
+    <Warning>
+      File `.env` chứa "mật khẩu" — không share, không commit lên Git public. Repo đã có sẵn `.gitignore` để tránh accident, nhưng vẫn nên cẩn thận.
+    </Warning>
+  </Step>
+
+  <Step title="Cài Remotion skill — chỉ khi sẽ render video Remotion ra MP4">
+    **Khi nào cần?** Chỉ khi bạn dự định render video Remotion (viết timeline bằng React → xuất MP4). Nếu chỉ dùng Asset Index để search asset, hoặc dùng pipeline render khác (FFmpeg thuần, DaVinci, …), **bỏ qua bước này**.
+
+    Khi cần, chạy:
+
+    ```bash
+    bash scripts/ensure-remotion-skill.sh --install
+    ```
+
+    Script này wrap `npx skills add remotion-dev/skills --yes` — cần Node.js đã cài ở Step 2. Nó tải skill về `.agents/skills/remotion-best-practices/`, ghi `skills-lock.json`, và tạo symlink `.claude/skills/remotion-best-practices` cho Claude Code. Sau khi cài 1 lần, mọi agent (Cursor, Codex, Claude Code) đụng tới Remotion sẽ tự đọc skill này để biết best practice.
+  </Step>
+
+  <Step title="Đăng ký watcher chạy nền (luôn bật)">
+    **Watcher là gì?** Là chương trình chạy ngầm — mỗi khi bạn drop file vào `raw_assets/`, watcher tự phát hiện, gọi AI phân tích, lưu vào DB. Không cần bật/tắt thủ công.
+
+    Đăng ký watcher với macOS để **tự bật mỗi khi mở máy**:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.service install
+    ```
+
+    Lệnh này tạo file cấu hình `~/Library/LaunchAgents/com.video-agent.asset-index.plist`. Đây là cơ chế chuẩn của macOS để chạy chương trình nền (`launchd`).
+
+    Kiểm tra watcher đã bật:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.service status
+    cat .asset_index/state.json
+    ```
+
+    `state.json` phải có `pid` (số > 0) và `last_error: null`. Nếu fail, xem [Khắc phục sự cố](/troubleshooting).
+  </Step>
+
+  <Step title="Verify — test cuối">
+    Test cả pipeline đã sẵn sàng:
+
+    1. Copy 1 ảnh bất kỳ vào folder `raw_assets/images/`.
+    2. Đợi ~5-10 giây (watcher debounce + Gemini phân tích + OpenAI embed).
+    3. Search bằng từ khoá khớp nội dung ảnh:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.search "<từ khoá liên quan ảnh>" --top 5
+    ```
+
+    Phải trả về ≥ 1 kết quả với `score > 0.5`. Nếu không → đọc [Khắc phục sự cố](/troubleshooting).
+  </Step>
+</Steps>
+
+## Xong rồi! Tiếp theo làm gì?
+
+<Columns cols={2}>
+  <Card title="Hiểu các API keys" icon="key" href="/configuration/env">
+    Vai trò từng key, link tạo, giới hạn quota miễn phí.
+  </Card>
+  <Card title="Sử dụng cơ bản" icon="play" href="/usage/index">
+    Drop file → search → status — workflow hằng ngày.
+  </Card>
+  <Card title="Cấu trúc dự án" icon="folder-tree" href="/configuration/structure">
+    Hiểu vai trò các thư mục `skills/`, `jobs/`, `tools/`.
+  </Card>
+  <Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+    8 lỗi hay gặp + cách xử lý.
+  </Card>
+</Columns>

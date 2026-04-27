@@ -1,0 +1,131 @@
+---
+title: "CLI dev"
+description: "Chạy module trực tiếp khi dev/debug"
+icon: "terminal"
+---
+
+Mỗi module trong `tools/asset_index/` đều có entry point `python -m`. Dùng khi dev, debug, hoặc CI.
+
+## watcher.py — theo dõi filesystem
+
+```bash
+.venv/bin/python -m tools.asset_index.watcher [OPTIONS]
+```
+
+| Cờ | Vai trò |
+| --- | --- |
+| `--scan-on-start` | Walk các root đang watch khi khởi động — index file đã drop từ trước |
+| `--include-jobs` | Watch thêm `jobs/*/input/raw_assets/` |
+| `--watch <path>` | Thêm path tuỳ ý (có thể lặp) |
+| `--polling` | Dùng PollingObserver thay FSEvents/inotify (cho NFS, sandbox) |
+| `--debounce <sec>` | Override debounce mặc định (1.5s mac, 2.5s win) |
+
+Ví dụ:
+
+```bash
+.venv/bin/python -m tools.asset_index.watcher \
+  --scan-on-start \
+  --include-jobs \
+  --debounce 2.0
+```
+
+## router.py — index 1 file
+
+```bash
+.venv/bin/python -m tools.asset_index.router <PATH> [OPTIONS]
+```
+
+| Cờ | Vai trò |
+| --- | --- |
+| `--force` | Re-index dù file đã có hash khớp trong DB |
+| `--db <path>` | Override DB path (mặc định `.asset_index/index.db`) |
+| `--env <path>` | Override `.env` path |
+
+Ví dụ:
+
+```bash
+.venv/bin/python -m tools.asset_index.router \
+  raw_assets/images/test.jpg \
+  --force
+```
+
+Output JSON:
+
+```json
+{
+  "status": "ok",
+  "file_path": "raw_assets/images/test.jpg",
+  "media_type": "image",
+  "id": "a1b2c3...",
+  "summary": "Phong cảnh núi mùa thu...",
+  "embed_model": "text-embedding-3-small"
+}
+```
+
+`status` có thể là `ok` (mới index), `skipped` (đã có), `failed` (lỗi — xem `error` field).
+
+## search.py — tìm asset
+
+```bash
+.venv/bin/python -m tools.asset_index.search "<query>" [OPTIONS]
+```
+
+| Cờ | Vai trò |
+| --- | --- |
+| `--top N` | Số kết quả (mặc định 5) |
+| `--media TYPE` | `image` / `video` / `audio` |
+| `--source SOURCE` | `raw_assets` / `jobs` |
+| `--job JOB_ID` | Lọc 1 job |
+| `--json` | Output JSON thay vì human-readable |
+
+Ví dụ:
+
+```bash
+.venv/bin/python -m tools.asset_index.search \
+  "phong cảnh núi tuyết" \
+  --top 10 \
+  --media image \
+  --json
+```
+
+## service.py — đăng ký service
+
+```bash
+.venv/bin/python -m tools.asset_index.service <CMD>
+```
+
+| Lệnh | Hành động |
+| --- | --- |
+| `install` | Tạo launchd plist (mac) / Task Scheduler entry (win) / hướng dẫn systemd (linux) |
+| `uninstall` | Gỡ service |
+| `status` | In trạng thái service hiện tại |
+| `start` | Khởi động service (sau khi `install`) |
+| `stop` | Dừng service tạm thời |
+
+## bootstrap.py — setup wizard
+
+```bash
+.venv/bin/python -m tools.asset_index.bootstrap [OPTIONS]
+```
+
+| Cờ | Vai trò |
+| --- | --- |
+| `--non-interactive` | Không prompt — fail nếu thiếu deps/key |
+| `--skip-service` | Bỏ qua bước register service |
+| `--skip-install` | Bỏ qua `pip install` (giả định venv đã sẵn sàng) |
+
+Dùng cho CI hoặc khi muốn chạy lại bootstrap mà không cần interaction.
+
+## exporter.py — export DB
+
+```bash
+.venv/bin/python -m tools.asset_index.exporter --output assets.json
+```
+
+Export toàn bộ `assets` table (không kèm embedding) ra JSON. Dùng cho debug, migration, hoặc share index.
+
+## Bước tiếp theo
+
+<Card title="File runtime" icon="folder" href="/asset-index/files">
+  Cấu trúc `.asset_index/`.
+</Card>

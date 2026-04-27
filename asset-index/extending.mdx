@@ -1,0 +1,204 @@
+---
+title: "Mở rộng"
+description: "Thêm format mới, đổi embed model, custom analyzer, search filter"
+icon: "plus"
+---
+
+Asset Index thiết kế modular — mỗi component (analyzer, embed, store, search) thay được mà không phải sửa toàn bộ.
+
+## Thêm format mới
+
+Mặc định hỗ trợ ext defined trong `skills/_shared/pipeline_utils.py`:
+
+```python
+MEDIA_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ...}
+MEDIA_VIDEO_EXTENSIONS = {".mp4", ".mov", ".mkv", ".webm", ...}
+MEDIA_AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".flac", ...}
+```
+
+Để thêm `.heic`:
+
+<Steps>
+  <Step title="Add ext vào set tương ứng">
+    Edit `skills/_shared/pipeline_utils.py`:
+
+    ```python
+    MEDIA_IMAGE_EXTENSIONS = {..., ".heic"}
+    ```
+  </Step>
+
+  <Step title="Đảm bảo Gemini Vision đọc được">
+    Gemini hỗ trợ HEIC trực tiếp. Nếu format khác (ví dụ `.tiff` mà LLM không đọc được), pre-convert bằng ffmpeg trong `image_gemini.analyze()`:
+
+    ```python
+    if path.suffix.lower() == ".tiff":
+        png = path.with_suffix(".png")
+        subprocess.run(["ffmpeg", "-i", path, png], check=True)
+        path = png
+    ```
+  </Step>
+
+  <Step title="Test">
+    ```bash
+    cp test.heic raw_assets/images/
+    .venv/bin/python -m tools.asset_index.search "<query>" --media image
+    ```
+  </Step>
+</Steps>
+
+## Đổi embed model
+
+Mặc định: OpenAI `text-embedding-3-small` (1536 chiều).
+
+Đổi sang `text-embedding-3-large` (3072 chiều):
+
+<Steps>
+  <Step title="Update embed.py">
+    ```python
+    DEFAULT_MODEL = "text-embedding-3-large"
+    ```
+  </Step>
+
+  <Step title="Update schema.sql">
+    ```sql
+    CREATE VIRTUAL TABLE assets_vec USING vec0(
+      id TEXT PRIMARY KEY,
+      embedding FLOAT[3072]   -- thay 1536
+    );
+    ```
+  </Step>
+
+  <Step title="Migrate DB hiện có">
+    Vì dim đổi, embedding cũ không tương thích. Cần re-embed toàn bộ:
+
+    ```bash
+    rm .asset_index/index.db
+    .venv/bin/python -m tools.asset_index.watcher --scan-on-start
+    ```
+
+    Hoặc giữ DB cũ và build DB mới song song (nếu muốn A/B test).
+  </Step>
+</Steps>
+
+<Warning>
+  Đổi embed model là **breaking change** — phải re-embed toàn bộ. Cân nhắc cost trước (tốn quota OpenAI).
+</Warning>
+
+## Đổi sang model OSS
+
+Để chạy embed local (không tốn API):
+
+```python
+from sentence_transformers import SentenceTransformer
+
+class LocalEmbedder:
+    def __init__(self):
+        self.model = SentenceTransformer("BAAI/bge-m3")
+
+    def embed(self, text: str) -> list[float]:
+        return self.model.encode(text).tolist()
+```
+
+Cập nhật `embed.py` import và schema dim. BGE-M3 = 1024 chiều.
+
+<Tip>
+  BGE-M3 multilingual, mạnh tiếng Việt, free, chạy ổn trên CPU laptop. Trade-off: chất lượng thường thấp hơn OpenAI cho domain phức tạp.
+</Tip>
+
+## Custom analyzer
+
+Để thêm analyzer cho format đặc biệt (ví dụ `.psd` Photoshop):
+
+<Steps>
+  <Step title="Tạo file analyzer">
+    `tools/asset_index/analyzers/psd_custom.py`:
+
+    ```python
+    from pathlib import Path
+    from typing import Any
+
+    def analyze(path: Path, *, env_file: Path) -> dict[str, Any]:
+        # extract layer info, thumbnail, OCR text...
+        return {
+            "media_type": "image",
+            "summary": "...",
+            "raw_json": {...},
+        }
+    ```
+  </Step>
+
+  <Step title="Wire vào router.py">
+    ```python
+    if path.suffix.lower() == ".psd":
+        return psd_custom.analyze(path, env_file=env_file)
+    ```
+  </Step>
+
+  <Step title="Test">
+    ```bash
+    cp test.psd raw_assets/images/
+    cat .asset_index/state.json
+    ```
+  </Step>
+</Steps>
+
+## Search filter mới
+
+`search.py` join `assets_vec` với `assets`. Thêm filter qua arg + WHERE clause:
+
+Ví dụ filter theo `mood` (đã lưu sẵn trong `mood_json`):
+
+```python
+def search_assets(
+    query: str,
+    *,
+    mood: str | None = None,
+    ...
+):
+    where = []
+    if mood:
+        where.append(f"json_extract(a.mood_json, '$') LIKE '%{mood}%'")
+    where_clause = " AND ".join(where) if where else "1=1"
+
+    sql = f"""
+    SELECT a.*, v.distance
+    FROM assets_vec v
+    JOIN assets a ON a.id = v.id
+    WHERE {where_clause}
+    ORDER BY v.distance
+    LIMIT ?
+    """
+```
+
+CLI:
+
+```bash
+.venv/bin/python -m tools.asset_index.search \
+  "phong cảnh" \
+  --mood "calm,peaceful"
+```
+
+## Custom hook (sau khi index)
+
+Để chạy logic riêng sau mỗi lần index thành công (ví dụ: gửi notification, sync lên cloud):
+
+Edit `router.process_file()` ở cuối:
+
+```python
+result = {"status": "ok", ...}
+_run_post_index_hooks(result)
+return result
+```
+
+Implement `_run_post_index_hooks()` đọc list từ env var hoặc config file → chạy script ngoài.
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+    Lỗi thường gặp khi mở rộng.
+  </Card>
+  <Card title="Đóng góp" icon="heart" href="/contributing">
+    Submit analyzer/skill mới về repo.
+  </Card>
+</Columns>

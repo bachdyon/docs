@@ -1,0 +1,108 @@
+---
+title: "Verify sau cài"
+description: "Test end-to-end để chắc chắn pipeline đang hoạt động"
+icon: "check-double"
+---
+
+Sau khi cài (auto installer hoặc cài đầy đủ), chạy test ngắn 3 bước để verify:
+
+<Steps>
+  <Step title="Drop 1 file ảnh test">
+    Chuẩn bị 1 file ảnh có nội dung dễ mô tả (ví dụ ảnh phong cảnh núi). Drop vào `raw_assets/images/`:
+
+    ```bash
+    cp ~/Pictures/test-mountain.jpg raw_assets/images/
+    ```
+
+    <Tip>
+      File càng đặc trưng càng dễ verify — tránh ảnh trống/đơn sắc.
+    </Tip>
+  </Step>
+
+  <Step title="Đợi watcher xử lý">
+    Watcher debounce 1.5s + analyzer ~3-5s + embedding ~1s. Đợi tổng cộng ~10 giây.
+
+    Theo dõi:
+
+    ```bash
+    cat .asset_index/state.json
+    ```
+
+    Khi `processed_count` tăng và `last_processed_path` trỏ đến file vừa drop → xong.
+  </Step>
+
+  <Step title="Search với từ khoá khớp">
+    ```bash
+    .venv/bin/python -m tools.asset_index.search "phong cảnh núi" --top 5
+    ```
+
+    Output mong đợi: file vừa drop xuất hiện trong top 5 với score > 0.5.
+  </Step>
+</Steps>
+
+## Nếu fail
+
+<AccordionGroup>
+  <Accordion title="processed_count không tăng">
+    Watcher không pick file. Khả năng:
+
+    - Watcher chưa chạy: `cat .asset_index/state.json` → `pid` rỗng → chạy `service install` lại.
+    - Filesystem không hỗ trợ inotify/FSEvents (NFS, ổ mạng, sandbox): chạy với `--polling`:
+
+      ```bash
+      .venv/bin/python -m tools.asset_index.watcher --polling --scan-on-start
+      ```
+  </Accordion>
+
+  <Accordion title="last_error có nội dung">
+    Đọc lỗi cụ thể trong `state.json` hoặc log:
+
+    ```bash
+    tail -f .asset_index/logs/watcher.err.log
+    ```
+
+    Lỗi phổ biến: API key sai, hết quota, ffmpeg thiếu. Xem [Khắc phục sự cố](/troubleshooting).
+  </Accordion>
+
+  <Accordion title="Search trả về 0 kết quả">
+    File đã index nhưng query không khớp. Thử:
+
+    - Query cụ thể hơn ("phong cảnh núi tuyết" thay vì "ảnh").
+    - Query bằng tiếng Anh ("snowy mountain landscape").
+    - Lọc media type: `--media image`.
+    - Kiểm tra DB:
+
+      ```bash
+      .venv/bin/python -c "import apsw; db = apsw.Connection('.asset_index/index.db'); print(list(db.cursor().execute('SELECT path, media_type FROM assets LIMIT 5')))"
+      ```
+  </Accordion>
+
+  <Accordion title="Score quá thấp (< 0.3)">
+    Description do Gemini sinh có thể không khớp ngữ nghĩa truy vấn. Re-index file để Gemini phân tích lại:
+
+    ```bash
+    .venv/bin/python -m tools.asset_index.router raw_assets/images/test-mountain.jpg --force
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Verify tổng thể (CI / khi nâng cấp)
+
+Chạy CI-friendly bootstrap để re-test toàn bộ pipeline:
+
+```bash
+.venv/bin/python tools/asset_index/bootstrap.py --non-interactive --skip-service
+```
+
+Lệnh này check Python + ffmpeg, chạy `pip install` lại, không đụng `.env` đã có, không re-register service.
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Khám phá Skills" icon="cubes" href="/skills/audio-deduplicate">
+    Skills tái sử dụng có sẵn.
+  </Card>
+  <Card title="Asset Index nâng cao" icon="database" href="/asset-index/architecture">
+    Kiến trúc, CLI, idempotency.
+  </Card>
+</Columns>

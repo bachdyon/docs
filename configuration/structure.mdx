@@ -1,0 +1,130 @@
+---
+title: "Cấu trúc dự án"
+description: "Vai trò các thư mục và file quan trọng trong repo"
+icon: "folder-tree"
+---
+
+Trước khi nhìn cây thư mục, làm quen 4 từ hay gặp:
+
+| Từ | Nghĩa đơn giản |
+| --- | --- |
+| **skill** | Một "nghiệp vụ" AI biết làm (ví dụ: bỏ đoạn nói lặp, viết kịch bản, dựng timeline). Mỗi skill nằm trong 1 folder riêng kèm file `SKILL.md` mô tả cách dùng. |
+| **job** | Một dự án video cụ thể bạn đang làm. Mỗi lần làm 1 clip mới = 1 folder `jobs/<tên>/`. |
+| **asset** | Ảnh, video hoặc audio gốc bạn cung cấp (chưa qua xử lý). |
+| **watcher** | Chương trình chạy nền 24/7. Bạn drop file vào `raw_assets/` là nó tự phát hiện, gọi AI phân tích, lưu vào DB. Không cần bật/tắt thủ công. |
+
+Sau khi clone repo, bạn sẽ thấy cấu trúc sau:
+
+```
+video-automator-skills/
+├── skills/                  # Bộ "kỹ năng" của AI — mỗi sub-folder là 1 skill (1 nghiệp vụ)
+├── jobs/                    # Mỗi lần làm 1 video sẽ tạo 1 folder con ở đây
+├── raw_assets/              # Kho ảnh/video/audio dùng chung — bạn drop file vào đây
+├── tools/                   # Mã Python chạy ngầm (watcher, tìm kiếm, phân tích, …)
+├── scripts/                 # Script tiện ích lẻ (vd: cài thêm skill từ ngoài)
+├── setup/                   # File "double-click" cài/tìm/gỡ trên Mac và Windows
+├── docs/                    # Trang tài liệu này (Mintlify)
+├── .asset_index/            # Bộ nhớ của watcher: DB SQLite + log (tự sinh, đừng sửa tay)
+├── .agents/                 # Skills bên thứ ba (cài bằng lệnh `skills`)
+├── .venv/                   # Bản Python riêng cho repo, không đụng Python hệ thống
+├── .env                     # Mật khẩu API (OpenAI, Gemini, …) — KHÔNG share, KHÔNG commit
+├── env.example              # File mẫu — copy ra `.env` rồi điền key của bạn
+├── AGENTS.md                # File "luật chơi" cho AI: Cursor, Codex, Claude Code đọc tự động khi mở repo
+├── README.md                # Trang giới thiệu repo trên GitHub
+├── CONTRIBUTING.md          # Hướng dẫn nếu bạn muốn đóng góp code/skill
+└── LICENSE                  # Giấy phép sử dụng (cá nhân/học tập OK, thương mại cần xin phép)
+```
+
+<Tip>
+  File/folder bắt đầu bằng dấu `.` (như `.env`, `.venv`, `.asset_index`) là **file ẩn** — Finder/Explorer mặc định không hiện. Trên Mac bật bằng `Cmd + Shift + .`, trên Windows tick **Hidden items** trong tab View.
+</Tip>
+
+## Chi tiết từng thư mục
+
+<AccordionGroup>
+  <Accordion icon="cubes" title="skills/ — project skills">
+    Mỗi folder con là một skill độc lập với file `SKILL.md` mô tả:
+
+    - `skills/audio-deduplicate/` — bỏ đoạn nói trùng lặp.
+    - `skills/_shared/` — utils dùng chung giữa các skill.
+    - (Sẽ bổ sung thêm.)
+
+    Pattern: agent đọc `SKILL.md` trước, sau đó load script trong `skills/<name>/scripts/` khi cần.
+  </Accordion>
+
+  <Accordion icon="folder-open" title="jobs/ — runtime của pipeline">
+    Mỗi job là một lần chạy thực tế:
+
+    ```
+    jobs/<job_id>/
+    ├── input/           # file đầu vào (audio, video, raw_assets)
+    ├── source/          # asset_semantics.toml, creative_plan.toml...
+    ├── tmp/             # artifact trung gian
+    └── output/          # file render cuối
+    ```
+
+    `<job_id>` thường có dạng `YYYY-MM-DD_NNN_short-name`.
+
+    Folder `jobs/` nằm trong `.gitignore` — không commit job output.
+  </Accordion>
+
+  <Accordion icon="image" title="raw_assets/ — pool asset toàn cục">
+    Drop ảnh/video/audio vào 3 folder con:
+
+    ```
+    raw_assets/
+    ├── images/
+    ├── videos/
+    └── audio/
+    ```
+
+    Watcher tự pick file mới, embed vào `.asset_index/index.db`. File pool dùng chung cho mọi job.
+
+    Folder bị gitignore (chỉ track layout `.gitkeep`).
+  </Accordion>
+
+  <Accordion icon="hammer" title="tools/ — công cụ hỗ trợ">
+    - `tools/asset_index/` — watcher, router, analyzers, embed, search, service. Module cốt lõi của Asset Index.
+    - `tools/word-keep-editor/` — UI gán keep-flag cho `audio-deduplicate`.
+  </Accordion>
+
+  <Accordion icon="file-code" title="scripts/ — script tiện ích cấp project">
+    - `scripts/ensure-remotion-skill.sh` — cài `$remotion-best-practices` vào `.agents/skills/`.
+  </Accordion>
+
+  <Accordion icon="download" title="setup/ — auto-installer">
+    8 file (4 chức năng × 2 OS):
+
+    - `Install.command` / `Install.bat` — cài full asset index.
+    - `Search.command` / `Search.bat` — tìm asset bằng truy vấn tiếng Việt.
+    - `Status.command` / `Status.bat` — xem trạng thái watcher.
+    - `Uninstall.command` / `Uninstall.bat` — gỡ service launchd / Task Scheduler.
+  </Accordion>
+
+  <Accordion icon="database" title=".asset_index/ — runtime của watcher">
+    - `index.db` — SQLite + sqlite-vec virtual table chứa metadata + embedding.
+    - `state.json` — pid + processed_count + last_error của watcher (đọc nhanh khi debug).
+    - `logs/watcher.{out,err}.log` — log từ launchd / Task Scheduler.
+
+    Bị gitignore. Xoá thư mục này = rebuild toàn bộ index lần sau.
+  </Accordion>
+
+  <Accordion icon="key" title=".env + env.example">
+    `.env` chứa 4 API key (xem [Cấu hình API keys](/configuration/env)). File `env.example` là template được commit.
+  </Accordion>
+
+  <Accordion icon="robot" title="AGENTS.md — quy tắc cho agent">
+    File này định nghĩa pipeline order rule và danh sách skills cho agent (ví dụ Cursor, Claude Code) đọc khi vào project.
+  </Accordion>
+</AccordionGroup>
+
+## Bước tiếp theo
+
+<Columns cols={2}>
+  <Card title="Sử dụng cơ bản" icon="play" href="/usage/index">
+    Workflow drop → search → status.
+  </Card>
+  <Card title="Asset Index nâng cao" icon="database" href="/asset-index/architecture">
+    Kiến trúc, CLI, idempotency.
+  </Card>
+</Columns>
