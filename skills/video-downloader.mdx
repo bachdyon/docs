@@ -1,0 +1,79 @@
+---
+title: "video-downloader"
+description: "Tải video TikTok / slideshow ảnh / audio qua TikWM vào raw_assets hoặc jobs/<id>/input/raw_assets"
+icon: "download"
+---
+
+<Info>
+  **Skill ID**: `$video-downloader` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_downloader/SKILL.md) · Provider API: [TikWM](https://www.tikwm.com/)
+</Info>
+
+## Mục đích
+
+Chuẩn hóa bước **ingest footage từ TikTok** thành asset local để pipeline dùng ngay như raw asset thật:
+
+- Video `.mp4`
+- Slideshow images `.jpg`
+- Audio `.mp3`
+
+Output mặc định:
+
+- Không có job: `raw_assets/<media>/downloaded/`
+- Có job: `jobs/<id>/input/raw_assets/<media>/downloaded/`
+
+## Khi nào invoke
+
+- User đưa link TikTok và muốn dùng clip đó cho pipeline video.
+- Cần tải hàng loạt URL để tạo pool asset cho asset-index.
+- Cần kéo cả `video + images + audio` từ một nguồn TikTok trước khi map scene.
+
+## Cách dùng nhanh
+
+```text
+$video-downloader — tải link TikTok vào job hiện tại để pipeline dùng ngay
+```
+
+Hoặc gọi script trực tiếp:
+
+```bash
+# Tải 1 video vào global raw_assets
+python skills/video_downloader/scripts/download_video.py \
+  --url "https://www.tiktok.com/@user/video/123" \
+  --hd
+
+# Tải vào job cụ thể
+python skills/video_downloader/scripts/download_video.py \
+  --url "https://www.tiktok.com/@user/video/123" \
+  --job jobs/<id> \
+  --mode all \
+  --hd
+```
+
+## Tham số chính
+
+| Flag | Ý nghĩa |
+| --- | --- |
+| `--url` | 1 URL TikTok |
+| `--urls-file` | File text nhiều URL (mỗi dòng 1 link) |
+| `--job jobs/<id>` | Ghi output vào job thay vì global pool |
+| `--mode video\|images\|audio\|all` | Loại media cần tải (mặc định `video`) |
+| `--hd` | Ưu tiên bản HD nếu API trả về |
+| `--output-dir` | Override thư mục output |
+| `--report-toml` | Override đường dẫn report TOML |
+
+## Report đầu ra
+
+Skill ghi report TOML gồm:
+
+- URL nguồn
+- media type
+- local file path
+- title / author (nếu có)
+- dung lượng file
+- metadata duration/dimension (nếu có `ffprobe`)
+
+## Lưu ý pháp lý
+
+- Chỉ tải nội dung khi bạn có quyền sử dụng cho mục đích hiện tại.
+- Không dùng để bypass paywall hoặc nội dung riêng tư.
+- Nếu dùng thương mại, cần xác minh quyền sử dụng footage/audio trước khi render final.

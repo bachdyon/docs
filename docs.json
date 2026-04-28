@@ -61,6 +61,7 @@
               "skills/ausynclab-voice",
               "skills/word-timestamps-extractor",
               "skills/audio-deduplicate",
+              "skills/video-downloader",
               "skills/video-render-plan-builder",
               "skills/video-renderer"
             ]
