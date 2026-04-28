@@ -1,0 +1,73 @@
+---
+title: "video-audio-extractor"
+description: "Tách audio track từ video sang WAV/MP3 để dùng cho transcript, dedupe hoặc render nhạc nền"
+icon: "music"
+---
+
+<Info>
+  **Skill ID**: `$video-audio-extractor` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video-audio-extractor/SKILL.md)
+</Info>
+
+## Mục đích
+
+Skill này tách audio trực tiếp từ file video (`.mp4`, `.mov`, ...) thành file rời để tái sử dụng trong pipeline.
+
+- Với audio giọng nói: ưu tiên xuất `.wav` để transcript và xử lý timestamp ổn định.
+- Với audio làm nhạc nền: có thể xuất `.mp3` để nhẹ dung lượng.
+
+Skill này chỉ extract audio, không làm source separation nhiều stem.
+
+## Khi nào được invoke
+
+- User muốn lấy nhạc/audio ra khỏi video.
+- Cần chuyển một video đã render thành đầu vào audio cho pipeline kế tiếp.
+- Cần chuẩn bị file audio để chạy `$word-timestamps-extractor` hoặc `$audio-deduplicate`.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-audio-extractor — tách audio từ jobs/<id>/input/raw_assets/clip.mp4 sang WAV
+```
+
+Hoặc:
+
+```text
+$video-audio-extractor — extract nhạc nền MP3 từ jobs/<id>/output/final_video.mp4
+```
+
+## Input / Output chuẩn
+
+- **Input**: video trong job, ví dụ `jobs/<id>/input/raw_assets/<video>.mp4`.
+- **Output mặc định**: `jobs/<id>/input/audio/<video>.wav`.
+- **Output tùy chọn**: `jobs/<id>/input/audio/<video>.mp3`.
+
+<Info>
+  Khuyến nghị dùng WAV cho speech pipeline. Dùng MP3 khi mục tiêu là nhạc nền gọn nhẹ.
+</Info>
+
+## Lệnh mẫu
+
+Extract WAV:
+
+```bash
+ffmpeg -y -i "jobs/<job_id>/input/raw_assets/<video>.mp4" -vn -ac 1 -ar 44100 -c:a pcm_s16le "jobs/<job_id>/input/audio/<video>.wav"
+```
+
+Extract MP3:
+
+```bash
+ffmpeg -y -i "jobs/<job_id>/input/raw_assets/<video>.mp4" -vn -c:a libmp3lame -b:a 192k "jobs/<job_id>/input/audio/<video>.mp3"
+```
+
+## Liên thông với skill khác
+
+- `$word-timestamps-extractor`: dùng file WAV vừa tạo để sinh transcript/timestamp cấp từ.
+- `$audio-deduplicate`: nếu audio speech bị lặp/restart, chạy dedupe trên file vừa extract.
+- `$video-render-plan-builder`: nếu file là nhạc nền, map vào `audio.music.path` trong render plan.
+
+## Lưu ý
+
+- Nếu video không có audio stream, skill sẽ fail sớm và báo lỗi rõ.
+- Skill không tự cắt timeline audio; việc cắt/trộn xử lý ở render plan hoặc renderer.

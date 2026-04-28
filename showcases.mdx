@@ -12,7 +12,7 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
 | --- | --- |
 | **Định dạng** | 9:16 (1080×1920 khuyến nghị) · TikTok / Reels / Shorts |
 | **VDS tóm tắt** | Template *News Intro + Source Clip Explainer*: phông tin tức + `[NEWS_BRAND]` / headline, giọng `[AI_INTRO_VOICE]` đọc hook và ngữ cảnh, **hard cut** sang `[SOURCE_CLIP]` giữ âm gốc; highlight bằng caption/SFX ngắn; intro ~10–20% timeline, thân clip ~70–85%. |
-| **Skills** | [video-design-spec-builder](/skills/video-design-spec-builder) · [video-creative-planner](/skills/video-creative-planner) · [ausynclab-voice](/skills/ausynclab-voice) · [video-render-plan-builder](/skills/video-render-plan-builder) · [video-renderer](/skills/video-renderer) |
+| **Skills** | [video-design-spec-builder](/skills/video-design-spec-builder) · [video-creative-planner](/skills/video-creative-planner) · [overlay-subject-placement](/skills/overlay-subject-placement) · [ausynclab-voice](/skills/ausynclab-voice) · [video-render-plan-builder](/skills/video-render-plan-builder) · [video-quality-auditor](/skills/video-quality-auditor) · [video-renderer](/skills/video-renderer) |
 
 <div
   style={{
@@ -24,7 +24,6 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
   }}
 >
   <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
-    <div style={{ fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.35rem", opacity: 0.85 }}>Video 1 — final (job 2026-04-27_001)</div>
     <video controls playsInline width="100%" style={{ borderRadius: 8, display: "block" }}>
       <source
         src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-04-27_001__the_anh_28/output/final_video.mp4"
@@ -48,7 +47,7 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
         opacity: 0.75,
       }}
     >
-      Chưa gắn URL — thêm cut / biến thể render.
+      Chưa gắn URL — thêm bản render/cut khác của định dạng news intro.
     </div>
   </div>
   <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
@@ -67,11 +66,39 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
         opacity: 0.75,
       }}
     >
-      Chưa gắn URL — thêm cut / biến thể render.
+      Chưa gắn URL — thêm bản render/cut khác của định dạng news intro.
     </div>
   </div>
+</div>
+
+## Video cảm xúc — Pill text theo từng dòng
+
+| Thuộc tính | Nội dung |
+| --- | --- |
+| **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts |
+| **VDS tóm tắt** | Source clip toàn màn hình giữ audio gốc; overlay text dạng **pill theo từng dòng** (line-based capsules), bo góc động theo tương quan độ dài từng dòng; không voiceover, không subtitle. |
+| **Skills** | [video-job-manager](/skills/video-job-manager) · [video-downloader](/skills/video-downloader) · [overlay-subject-placement](/skills/overlay-subject-placement) · [video-quality-auditor](/skills/video-quality-auditor) · [remotion-best-practices](/skills/remotion-best-practices) |
+| **Thông số overlay** | Top 25% · căn giữa ngang · chữ đen nền trắng · font BeVietnamPro 44 · line gap 0 · 3 dòng text + emoji |
+
+<div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "1rem",
+    alignItems: "flex-start",
+    marginTop: "1.25rem",
+  }}
+>
   <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
-    <div style={{ fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.35rem", opacity: 0.85 }}>Video 4</div>
+    <video controls playsInline width="100%" style={{ borderRadius: 8, display: "block" }}>
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-04-28_001__tiktok-cute-pill-text/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <div style={{ fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.35rem", opacity: 0.85 }}>Video 2</div>
     <div
       style={{
         borderRadius: 8,
@@ -86,7 +113,26 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
         opacity: 0.75,
       }}
     >
-      Chưa gắn URL — thêm cut / biến thể render.
+      Chưa gắn URL — thêm biến thể khác của pill text.
+    </div>
+  </div>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <div style={{ fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.35rem", opacity: 0.85 }}>Video 3</div>
+    <div
+      style={{
+        borderRadius: 8,
+        border: "1px dashed var(--border-default, #ccc)",
+        minHeight: 200,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        textAlign: "center",
+        fontSize: "0.875rem",
+        opacity: 0.75,
+      }}
+    >
+      Chưa gắn URL — thêm biến thể khác của pill text.
     </div>
   </div>
 </div>

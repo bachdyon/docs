@@ -59,10 +59,13 @@
               "skills/semantic-asset-mapper",
               "skills/shot-coverage-planner",
               "skills/fal-image-generator",
+              "skills/overlay-subject-placement",
               "skills/ausynclab-voice",
+              "skills/video-audio-extractor",
               "skills/word-timestamps-extractor",
               "skills/audio-deduplicate",
               "skills/video-downloader",
+              "skills/video-quality-auditor",
               "skills/video-render-plan-builder",
               "skills/video-renderer"
             ]

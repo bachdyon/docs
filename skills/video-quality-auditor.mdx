@@ -1,0 +1,73 @@
+---
+title: "video-quality-auditor"
+description: "Audit quality overlay theo pass và áp dụng batch fix tối đa 3 vòng"
+icon: "shield-check"
+---
+
+<Info>
+  **Skill ID**: `$video-quality-auditor` · Source: `skills/video_quality_auditor/SKILL.md`
+</Info>
+
+## Mục đích
+
+Audit theo hướng code-first cho Remotion source + render plan hiện tại, ưu tiên readability và safe-area của overlay:
+
+1. Gom toàn bộ lỗi trong pass hiện tại.
+2. Tạo một batch fix duy nhất cho pass đó.
+3. Áp dụng fix, kiểm tra lại, và lặp tối đa 3 pass.
+
+Đầu ra gồm báo cáo TOML (machine-readable) và HTML tiếng Việt để review nhanh.
+
+## Khi nào được invoke
+
+- Cần kiểm tra/chỉnh nhanh chất lượng overlay trước khi chốt final render.
+- Cần cân lại `font_size`, `top_percent`, `offset`, `tilt` để tránh lỗi hiển thị.
+- Cần report tiếng Việt cho vòng review nội bộ.
+
+## Input tối thiểu
+
+- `--job jobs/<job_id>`
+- `source/render_plan.toml`
+- `remotion/src/composition.tsx`
+- `remotion/src/Root.tsx`
+- (khuyến nghị) `source/audit_config.toml`
+
+## Artifact đầu ra
+
+- `logs/audit_pass_0N.toml`
+- `logs/audit_report_vi_pass_0N.html`
+- `logs/audit_report_vi_final.html`
+
+## Quy tắc audit/fix
+
+- Chỉ chạy `apply_fix_batch.py` khi còn lỗi `severity = "error"`.
+- Mỗi pass chỉ áp dụng đúng một batch fix (`batch_all_findings`).
+- Dừng khi không còn `error` hoặc đã tới `max_audit_passes = 3`.
+
+## Cách sử dụng
+
+Gõ trong chat:
+
+```text
+$video-quality-auditor — audit job hiện tại và đề xuất batch fix tối ưu
+```
+
+Hoặc chạy script:
+
+```bash
+.venv/bin/python skills/video_quality_auditor/scripts/audit_video.py \
+  --job jobs/<job_id> \
+  --pass-index 1
+
+.venv/bin/python skills/video_quality_auditor/scripts/render_html_report.py \
+  --job jobs/<job_id> \
+  --pass-index 1
+
+.venv/bin/python skills/video_quality_auditor/scripts/apply_fix_batch.py \
+  --job jobs/<job_id> \
+  --pass-index 1
+```
+
+<Info>
+  Scope mặc định profile `overlay_readability_safearea`: safe-area 9:16 cứng, range `font_size`, giới hạn `tilt`, và kiểm tra contrast cơ bản.
+</Info>
