@@ -167,21 +167,17 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
     </video>
   </div>
   <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
-    <div
-      style={{
-        borderRadius: 8,
-        aspectRatio: "9 / 16",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
-        textAlign: "center",
-        fontSize: "0.875rem",
-        opacity: 0.75,
-      }}
+    <video
+      controls
+      playsInline
+      width="100%"
+      style={{ borderRadius: 8, display: "block", aspectRatio: "9 / 16", objectFit: "cover", background: "#000" }}
     >
-      Chừa slot cho biến thể product pitch tiếp theo.
-    </div>
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-04-29_003_success-product-pitch/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
   </div>
 </div>
 
