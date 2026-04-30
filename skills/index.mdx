@@ -1,12 +1,37 @@
 ---
-title: "Tổng quan Skills"
-description: "17 skill phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
+title: "Tổng Quan"
+description: "19 skill phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
 icon: "list"
 ---
 
-VAS đóng gói **17 project skill** + **1 skill bên thứ ba** (`$remotion-best-practices`). Mỗi skill là 1 module độc lập có file `SKILL.md` riêng — agent đọc khi cần, user không phải nhớ.
+VAS đóng gói **19 project skill** + **1 skill bên thứ ba** (`$remotion-best-practices`). Mỗi skill là 1 module độc lập có file `SKILL.md` riêng — agent đọc khi cần, user không phải nhớ.
 
-## Asset & lập kế hoạch
+## Quản Lý Job
+
+<Columns cols={2}>
+  <Card title="video-job-manager" icon="folder-tree" href="/skills/video-job-manager">
+    Quản lý folder `jobs/<id>/`.
+  </Card>
+  <Card title="video-production-orchestrator" icon="diagram-project" href="/skills/video-production-orchestrator">
+    Điều phối toàn pipeline A → Z.
+  </Card>
+</Columns>
+
+## Lập Kế Hoạch
+
+<Columns cols={2}>
+  <Card title="video-creative-planner" icon="lightbulb" href="/skills/video-creative-planner">
+    Brief → script + scene + overlay.
+  </Card>
+  <Card title="video-design-spec-builder" icon="palette" href="/skills/video-design-spec-builder">
+    Trích phong cách từ video mẫu.
+  </Card>
+  <Card title="video-render-plan-builder" icon="list-check" href="/skills/video-render-plan-builder">
+    Sinh edit decision list (EDL).
+  </Card>
+</Columns>
+
+## Asset
 
 <Columns cols={2}>
   <Card title="asset-semantic-extractor" icon="image" href="/skills/asset-semantic-extractor">
@@ -14,12 +39,6 @@ VAS đóng gói **17 project skill** + **1 skill bên thứ ba** (`$remotion-bes
   </Card>
   <Card title="semantic-asset-mapper" icon="link" href="/skills/semantic-asset-mapper">
     Chọn asset nào cho scene nào.
-  </Card>
-  <Card title="video-creative-planner" icon="lightbulb" href="/skills/video-creative-planner">
-    Brief → script + scene + overlay.
-  </Card>
-  <Card title="video-design-spec-builder" icon="palette" href="/skills/video-design-spec-builder">
-    Trích phong cách từ video mẫu.
   </Card>
   <Card title="shot-coverage-planner" icon="scissors" href="/skills/shot-coverage-planner">
     Bù shot thiếu bằng cutaway / slowdown.
@@ -47,6 +66,9 @@ VAS đóng gói **17 project skill** + **1 skill bên thứ ba** (`$remotion-bes
   <Card title="word-timestamps-extractor" icon="closed-captioning" href="/skills/word-timestamps-extractor">
     Transcribe + timestamp từng từ.
   </Card>
+  <Card title="subtitle-screen-splitter" icon="closed-captioning" href="/skills/subtitle-screen-splitter">
+    Chia subtitle thành page ngắn theo dấu câu và chữ hoa.
+  </Card>
 </Columns>
 
 ## Ingest
@@ -57,23 +79,22 @@ VAS đóng gói **17 project skill** + **1 skill bên thứ ba** (`$remotion-bes
   </Card>
 </Columns>
 
-## Render & quản lý job
+## Render Video
 
 <Columns cols={2}>
-  <Card title="video-render-plan-builder" icon="list-check" href="/skills/video-render-plan-builder">
-    Sinh edit decision list (EDL).
-  </Card>
   <Card title="video-renderer" icon="film" href="/skills/video-renderer">
     Render TOML thành MP4.
   </Card>
-  <Card title="video-job-manager" icon="folder-tree" href="/skills/video-job-manager">
-    Quản lý folder `jobs/<id>/`.
-  </Card>
-  <Card title="video-production-orchestrator" icon="diagram-project" href="/skills/video-production-orchestrator">
-    Điều phối toàn pipeline A → Z.
-  </Card>
   <Card title="video-quality-auditor" icon="shield-check" href="/skills/video-quality-auditor">
     Audit overlay quality và batch fix theo pass.
+  </Card>
+</Columns>
+
+## Social Integration
+
+<Columns cols={2}>
+  <Card title="socialkit-api" icon="share-nodes" href="/skills/socialkit-api">
+    Lấy transcript, summary, stats, comments và search qua SocialKit.
   </Card>
 </Columns>
 

@@ -1,0 +1,78 @@
+---
+title: "socialkit-api"
+description: "Gọi SocialKit API bằng Python để lấy transcript, summary, stats, comments, search, channel stats và download YouTube"
+icon: "share-nodes"
+---
+
+<Info>
+  **Skill ID**: `$socialkit-api` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/socialkit_api/SKILL.md) · Provider API: [SocialKit](https://docs.socialkit.dev/)
+</Info>
+
+## Mục đích
+
+Chuẩn hóa toàn bộ request SocialKit qua một Python client thống nhất, thay vì gọi API thủ công bằng `curl`.
+
+Skill hỗ trợ:
+
+- Video file URL: summary, transcript.
+- YouTube: summary, transcript, stats, comments, channel stats, search, videos, download.
+- TikTok: summary, transcript, stats, comments, channel stats, search, hashtag search.
+- Instagram: summary, transcript, stats, channel stats.
+- Facebook: summary, transcript, stats, channel stats.
+
+## Khi nào invoke
+
+- Cần transcript hoặc summary từ link social/video file.
+- Cần stats, comments, search results hoặc channel stats để làm research.
+- Cần download YouTube qua SocialKit rồi đưa vào pipeline video.
+- Muốn lưu JSON nguồn vào `source/` hoặc `jobs/<id>/source/`.
+
+## Cách dùng nhanh
+
+```text
+$socialkit-api — lấy transcript/summary/stats từ URL bằng SocialKit
+```
+
+Liệt kê operation có sẵn:
+
+```bash
+python skills/socialkit_api/scripts/socialkit_client.py endpoints
+```
+
+Gọi transcript và ghi JSON:
+
+```bash
+python skills/socialkit_api/scripts/socialkit_client.py call youtube.transcript \
+  --param url=https://youtube.com/watch?v=dQw4w9WgXcQ \
+  --output source/socialkit_youtube_transcript.json
+```
+
+Gọi TikTok summary với prompt riêng:
+
+```bash
+python skills/socialkit_api/scripts/socialkit_client.py call tiktok.summary \
+  --param url=https://www.tiktok.com/@user/video/123 \
+  --param custom_prompt="Tóm tắt bằng tiếng Việt, ngắn gọn." \
+  --output source/socialkit_tiktok_summary.json
+```
+
+## Môi trường
+
+Repo-root `.env` cần có:
+
+```text
+SOCIALKIT_API_KEY=...
+```
+
+<Warning>
+  Không in hoặc commit `SOCIALKIT_API_KEY`. Skill dùng header `x-access-key`, không đưa key vào URL/log.
+</Warning>
+
+## Output
+
+Output chuẩn là JSON, thường đặt tại:
+
+- `source/socialkit_<platform>_<operation>.json`
+- `jobs/<job_id>/source/socialkit_<platform>_<operation>.json`
+
+Khi dùng kết quả cho pipeline video, nên chuyển transcript/summary thành artifact riêng trước khi đưa vào creative plan hoặc render plan.

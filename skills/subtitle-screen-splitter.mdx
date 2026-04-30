@@ -1,0 +1,88 @@
+---
+title: "subtitle-screen-splitter"
+description: "Chia subtitle/transcript thành các màn ngắn cho karaoke hoặc short-form renderer"
+icon: "closed-captioning"
+---
+
+<Info>
+  **Skill ID**: `$subtitle-screen-splitter` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/subtitle-screen-splitter/SKILL.md)
+</Info>
+
+## Mục đích
+
+Biến một subtitle stream liên tục thành các **screen page** nhỏ, ổn định để renderer hiển thị từng màn.
+
+Đặc biệt hữu ích cho subtitle karaoke hoặc layout short-form cần text rất ngắn, ví dụ tối đa 1-2 chữ trên màn hình.
+
+## Quy tắc tách
+
+- Tách sau dấu câu: `.`, `,`, `!`, `?`, `;`, `:`, `…`.
+- Giữ dấu câu ở page đứng trước.
+- Tách trước token viết hoa kiểu bắt đầu câu mới khi page hiện tại đã có chữ.
+- Giữ nguyên dấu tiếng Việt.
+- Giữ word timing nếu input là transcript word-level.
+- Giới hạn độ dài bằng `--max-words` và `--max-chars`.
+
+Ví dụ:
+
+```text
+dang dở Bạn phát hiện ra
+=> "dang dở" / "Bạn phát hiện ra"
+
+không? Tôi không biết
+=> "không?" / "Tôi không biết"
+```
+
+## Khi nào invoke
+
+- Subtitle đang bị dính câu, dính dấu câu hoặc dính chữ hoa sang cùng một màn.
+- Renderer cần `subtitlePages` thay vì tự split theo số từ đơn giản.
+- Muốn cố định page trước render để tránh khác biệt giữa nhiều template.
+- Cần subtitle tối đa 2 chữ như các template karaoke dọc.
+
+## Cách dùng nhanh
+
+```text
+$subtitle-screen-splitter — chia transcript thành subtitle pages trước khi render
+```
+
+Tách text trực tiếp:
+
+```bash
+python skills/subtitle-screen-splitter/scripts/split_subtitle_screens.py \
+  --text "không? Tôi không biết"
+```
+
+Tách transcript word-level của job:
+
+```bash
+python skills/subtitle-screen-splitter/scripts/split_subtitle_screens.py \
+  --transcript jobs/<job_id>/source/transcript_word_level.toml \
+  --output jobs/<job_id>/source/subtitle_screens.json \
+  --max-words 2 \
+  --max-chars 18
+```
+
+## Output JSON
+
+```json
+{
+  "pages": [
+    {
+      "id": "PAGE_0001",
+      "text": "không?",
+      "start": 0.0,
+      "end": 0.4,
+      "word_ids": ["W_0001"],
+      "words": []
+    }
+  ]
+}
+```
+
+## Renderer integration
+
+- Load `pages` vào render props, ví dụ `subtitlePages`.
+- Chọn page active bằng `now >= page.start && now <= page.end`.
+- Nếu có karaoke highlight, render `page.words` và highlight theo `word.start/end`.
+- Không join page lại sau split; dấu câu và chữ hoa là boundary có ý nghĩa.

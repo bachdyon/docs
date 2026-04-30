@@ -51,23 +51,67 @@
             "group": "Skills",
             "pages": [
               "skills/index",
-              "skills/video-production-orchestrator",
-              "skills/video-job-manager",
-              "skills/video-design-spec-builder",
-              "skills/video-creative-planner",
-              "skills/asset-semantic-extractor",
-              "skills/semantic-asset-mapper",
-              "skills/shot-coverage-planner",
-              "skills/fal-image-generator",
-              "skills/overlay-subject-placement",
-              "skills/ausynclab-voice",
-              "skills/video-audio-extractor",
-              "skills/word-timestamps-extractor",
-              "skills/audio-deduplicate",
-              "skills/video-downloader",
-              "skills/video-quality-auditor",
-              "skills/video-render-plan-builder",
-              "skills/video-renderer"
+              {
+                "group": "Quản Lý Job",
+                "expanded": false,
+                "pages": [
+                  "skills/video-job-manager",
+                  "skills/video-production-orchestrator"
+                ]
+              },
+              {
+                "group": "Lập Kế Hoạch",
+                "expanded": false,
+                "pages": [
+                  "skills/video-creative-planner",
+                  "skills/video-design-spec-builder",
+                  "skills/video-render-plan-builder"
+                ]
+              },
+              {
+                "group": "Asset",
+                "expanded": false,
+                "pages": [
+                  "skills/asset-semantic-extractor",
+                  "skills/semantic-asset-mapper",
+                  "skills/shot-coverage-planner",
+                  "skills/fal-image-generator",
+                  "skills/overlay-subject-placement"
+                ]
+              },
+              {
+                "group": "Audio",
+                "expanded": false,
+                "pages": [
+                  "skills/ausynclab-voice",
+                  "skills/video-audio-extractor",
+                  "skills/audio-deduplicate",
+                  "skills/word-timestamps-extractor",
+                  "skills/subtitle-screen-splitter"
+                ]
+              },
+              {
+                "group": "Ingest",
+                "expanded": false,
+                "pages": [
+                  "skills/video-downloader"
+                ]
+              },
+              {
+                "group": "Render Video",
+                "expanded": false,
+                "pages": [
+                  "skills/video-renderer",
+                  "skills/video-quality-auditor"
+                ]
+              },
+              {
+                "group": "Social Integration",
+                "expanded": false,
+                "pages": [
+                  "skills/socialkit-api"
+                ]
+              }
             ]
           },
           {

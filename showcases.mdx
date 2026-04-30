@@ -181,6 +181,51 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
   </div>
 </div>
 
+## Podcast karaoke — Rounded square frame
+
+| Thuộc tính | Nội dung |
+| --- | --- |
+| **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts |
+| **VDS tóm tắt** | Khung video vuông bo góc đặt giữa màn hình, viền fade mềm vào bên trong; subtitle karaoke tối đa 2 chữ nằm trong đáy khung; tên kênh đặt bên dưới khung. Phù hợp video podcast / storytelling dùng audio chính và B-roll cắt nhanh. |
+| **Skills** | [subtitle-screen-splitter](/skills/subtitle-screen-splitter) · [word-timestamps-extractor](/skills/word-timestamps-extractor) · [semantic-asset-mapper](/skills/semantic-asset-mapper) · [video-renderer](/skills/video-renderer) |
+
+<div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "1rem",
+    alignItems: "flex-start",
+    marginTop: "1.25rem",
+  }}
+>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <video
+      controls
+      playsInline
+      width="100%"
+      style={{ borderRadius: 8, display: "block", aspectRatio: "9 / 16", objectFit: "cover", background: "#000" }}
+    >
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/showcases/2026-04-29_004_podcast-karaoke-dong-luc/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <video
+      controls
+      playsInline
+      width="100%"
+      style={{ borderRadius: 8, display: "block", aspectRatio: "9 / 16", objectFit: "cover", background: "#000" }}
+    >
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/showcases/2026-04-30_001_podcast-karaoke-bongda/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+</div>
+
 ## Định dạng tiếp theo
 
 Khi có thêm loại video (ví dụ chỉ B-roll, toàn ảnh AI, tutorial dọc…), thêm một mục `## Tên định dạng — gợi nhớ ngắn` với cùng bộ: bảng thuộc tính + hàng player như trên.
