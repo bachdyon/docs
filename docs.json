@@ -84,6 +84,7 @@
                 "expanded": false,
                 "pages": [
                   "skills/ausynclab-voice",
+                  "skills/free-tts",
                   "skills/video-audio-extractor",
                   "skills/audio-deduplicate",
                   "skills/word-timestamps-extractor",
@@ -102,7 +103,8 @@
                 "expanded": false,
                 "pages": [
                   "skills/video-renderer",
-                  "skills/video-quality-auditor"
+                  "skills/video-quality-auditor",
+                  "skills/job-to-template"
                 ]
               },
               {
@@ -142,6 +144,7 @@
             "pages": [
               "troubleshooting",
               "contributing",
+              "license",
               "support"
             ]
           }

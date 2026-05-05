@@ -1,0 +1,43 @@
+---
+title: "job-to-template"
+description: "Chuyển một job Remotion đã hoàn thiện thành template và project skill tái sử dụng"
+icon: "copy-plus"
+---
+
+<Info>
+  **Skill ID**: `$job-to-template` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/job-to-template/SKILL.md)
+</Info>
+
+## Mục đích
+
+Biến một job video đã render tốt thành template có thể tái sử dụng cho nhiều request sau, giảm token và giảm rủi ro khi phải dựng lại style từ đầu.
+
+Output thường gồm:
+
+- Template portable từ `jobs/<id>/remotion/`
+- Project skill mới mô tả cách instantiate template
+- Portability audit để phát hiện hard-coded path, asset thiếu, hoặc dependency không ổn định
+
+## Khi nào được invoke
+
+- User muốn “biến job này thành template”
+- Một format video đã ổn và cần dùng lại nhiều lần
+- Cần parameterize một job Remotion để thay text, asset, voice, headline, credit...
+
+## Cách dùng nhanh
+
+```text
+$job-to-template — chuyển job hiện tại thành template tái sử dụng
+```
+
+<Warning>
+  Skill này làm việc với Remotion project, nên agent phải load `$remotion-best-practices` trước khi quyết định hoặc chỉnh code Remotion.
+</Warning>
+
+## Quy trình chính
+
+1. Chọn job đã render thành công.
+2. Audit code, asset và config để tìm phần còn phụ thuộc job cũ.
+3. Tách tham số đầu vào thành schema/template config.
+4. Validate template bằng một render test.
+5. Tạo skill mới hoặc cập nhật skill template tương ứng.

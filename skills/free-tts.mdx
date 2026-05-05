@@ -1,0 +1,75 @@
+---
+title: "free-tts"
+description: "Tạo giọng đọc miễn phí/local bằng VieNeu-TTS, hỗ trợ preset voice và voice clone"
+icon: "audio-lines"
+---
+
+<Info>
+  **Skill ID**: `$free-tts` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/free_tts/SKILL.md) · Engine: [VieNeu-TTS](https://github.com/pnnbao97/VieNeu-TTS)
+</Info>
+
+## Mục đích
+
+Sinh narration `.wav` / `.mp3` bằng **VieNeu-TTS** khi không có `AUSYNCLAB_API_KEY`, hoặc khi user yêu cầu dùng free/local TTS thay AusyncLab.
+
+Skill hỗ trợ:
+
+- Preset voices của VieNeu-TTS (`Binh`, `Tuyen`, `Vinh`, `Doan`, `Ly`, `Ngoc`)
+- Voice clone từ sample audio
+- Registry `.shared` để đặt tên giọng dùng lại giữa các job
+- Auto-install package `vieneu` nếu môi trường chưa có
+
+## Khi nào được invoke
+
+- User nói “tự động tạo giọng đọc cho...”
+- `.env` không có `AUSYNCLAB_API_KEY`
+- User yêu cầu “free TTS”, “VieNeu-TTS”, “local TTS”, hoặc “không dùng AusyncLab”
+- Cần clone giọng từ sample `.wav` / `.mp3`
+
+## Cách dùng nhanh
+
+```text
+$free-tts — tạo giọng đọc miễn phí cho script trong job hiện tại
+```
+
+Hoặc gọi script trực tiếp:
+
+```bash
+.venv/bin/python skills/free_tts/scripts/free_tts.py \
+  --text-file jobs/<job_id>/source/narration.txt \
+  --voice-id Binh \
+  --output-audio jobs/<job_id>/source/voice.wav \
+  --output jobs/<job_id>/source/voice_selection.toml
+```
+
+## Voice clone đặt tên
+
+`.shared` nằm cùng cấp `.env` và dùng format:
+
+```text
+CON_VO=raw_assets/audio/voice_samples/CON_VO_sample.wav
+```
+
+Tên giọng phải là ASCII không dấu: `A-Z`, `a-z`, `0-9`, `_`, bắt đầu bằng chữ.
+
+Lưu giọng:
+
+```bash
+.venv/bin/python skills/free_tts/scripts/free_tts.py \
+  --save-voice-name CON_VO \
+  --save-voice-audio raw_assets/audio/voice_samples/CON_VO_sample.wav
+```
+
+Dùng giọng đã lưu:
+
+```bash
+.venv/bin/python skills/free_tts/scripts/free_tts.py \
+  --text-file jobs/<job_id>/source/narration.txt \
+  --mode turbo \
+  --voice-name CON_VO \
+  --output-audio jobs/<job_id>/source/voice.wav
+```
+
+<Tip>
+  `turbo` phù hợp khi clone giọng vì không cần `ref_text`; `standard` là mặc định cho preset voice.
+</Tip>

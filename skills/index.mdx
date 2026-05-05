@@ -1,10 +1,10 @@
 ---
 title: "Tổng Quan"
-description: "19 skill phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
+description: "21 public skill phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
 icon: "list"
 ---
 
-VAS đóng gói **19 project skill** + **1 skill bên thứ ba** (`$remotion-best-practices`). Mỗi skill là 1 module độc lập có file `SKILL.md` riêng — agent đọc khi cần, user không phải nhớ.
+VAS public **21 project skill** + **1 skill bên thứ ba** (`$remotion-best-practices`). Một số skill template nội bộ không xuất hiện trong docs public.
 
 ## Quản Lý Job
 
@@ -55,7 +55,10 @@ VAS đóng gói **19 project skill** + **1 skill bên thứ ba** (`$remotion-bes
 
 <Columns cols={2}>
   <Card title="ausynclab-voice" icon="microphone" href="/skills/ausynclab-voice">
-    Sinh narration TTS.
+    Sinh narration TTS bằng AusyncLab.
+  </Card>
+  <Card title="free-tts" icon="audio-lines" href="/skills/free-tts">
+    TTS local/free bằng VieNeu-TTS, preset voice và voice clone.
   </Card>
   <Card title="video-audio-extractor" icon="music" href="/skills/video-audio-extractor">
     Tách audio track từ video sang WAV/MP3.
@@ -87,6 +90,9 @@ VAS đóng gói **19 project skill** + **1 skill bên thứ ba** (`$remotion-bes
   </Card>
   <Card title="video-quality-auditor" icon="shield-check" href="/skills/video-quality-auditor">
     Audit overlay quality và batch fix theo pass.
+  </Card>
+  <Card title="job-to-template" icon="copy-plus" href="/skills/job-to-template">
+    Chuyển job đã hoàn thiện thành template tái sử dụng.
   </Card>
 </Columns>
 
