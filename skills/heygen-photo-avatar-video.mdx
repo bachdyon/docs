@@ -1,0 +1,68 @@
+---
+title: "heygen-photo-avatar-video"
+description: "Tạo video talking-head từ 1 ảnh người + 1 file audio bằng HeyGen"
+icon: "user"
+---
+
+<Info>
+  **Skill ID**: `$heygen-photo-avatar-video` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/heygen-photo-avatar-video/SKILL.md)
+</Info>
+
+## Mục đích
+
+Tạo video nhân hiệu (talking avatar) từ một ảnh chân dung và audio narration custom qua HeyGen Image to Video (`POST /v3/videos`, `type: "image"`).
+
+## Khi nào invoke
+
+- Bạn muốn video lip-sync từ ảnh người thật + audio có sẵn.
+- Bạn cần video nhân hiệu cho TikTok/Reels/Shorts.
+- Bạn muốn tạo nhanh clip talking-head trước khi đưa vào pipeline dựng video.
+
+## Lưu ý quan trọng
+
+- Bắt buộc có `HEYGEN_API_KEY` trong `.env`.
+- Input tối thiểu: 1 ảnh người + 1 audio narration.
+- Có thể dùng file local (upload trước thành `asset_id`) hoặc URL public.
+- Không trộn custom audio với flow `script`/`voice_id`.
+- Luôn poll `GET /v3/videos/{video_id}` đến khi `completed` hoặc `failed`.
+
+## Cách dùng nhanh
+
+```text
+$heygen-photo-avatar-video — tạo talking-head từ ảnh và audio rồi tải MP4 về job
+```
+
+Script one-shot (generate + poll + download):
+
+```bash
+python skills/heygen-photo-avatar-video/scripts/heygen_photo_avatar_video.py generate \
+  --env-file .env \
+  --image jobs/<job_id>/input/raw_assets/images/person.jpg \
+  --audio jobs/<job_id>/input/raw_assets/audio/narration.mp3 \
+  --title "Video nhân hiệu" \
+  --aspect-ratio 9:16 \
+  --resolution 1080p \
+  --output-dir jobs/<job_id>/input/raw_assets/videos/heygen
+```
+
+## Output
+
+Script sẽ ghi:
+
+- `<output-dir>/heygen_video_<video_id>.json`
+- `<output-dir>/heygen_video_<video_id>.mp4`
+
+Sau khi tải xong, dùng MP4 này như raw asset bình thường và tiếp tục các stage semantic mapping/render plan.
+
+## Creative defaults
+
+- Short-form dọc: `--aspect-ratio 9:16 --resolution 1080p`.
+- Video ngang: `--aspect-ratio 16:9 --resolution 1080p`.
+- Nếu nền ảnh rối, có thể thêm `--remove-background`.
+
+## Troubleshooting
+
+- `Missing HEYGEN_API_KEY`: thêm key vào `.env`.
+- `script and audio are mutually exclusive`: dùng flow custom audio đúng theo skill này.
+- `failed`: kiểm tra `failure_message` trong file JSON output.
+- Không thấy MP4: kiểm tra field `video_url` trong response saved.

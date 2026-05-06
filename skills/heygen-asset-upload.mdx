@@ -1,0 +1,62 @@
+---
+title: "heygen-asset-upload"
+description: "Upload ảnh/video/audio/PDF lên HeyGen và nhận asset_id tái sử dụng"
+icon: "upload"
+---
+
+<Info>
+  **Skill ID**: `$heygen-asset-upload` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/heygen-asset-upload/SKILL.md)
+</Info>
+
+## Mục đích
+
+Upload file local lên HeyGen qua `POST /v3/assets` để nhận `asset_id`, sau đó tái sử dụng cho các flow khác như avatar, image-to-video, video translation hoặc bất kỳ endpoint HeyGen nào nhận đầu vào dạng file.
+
+## Khi nào invoke
+
+- Bạn cần upload ảnh/video/audio/PDF lên HeyGen.
+- Bạn muốn upload một lần và tái dùng `asset_id` nhiều lần.
+- Bạn đang chuẩn bị asset cho `$heygen-photo-avatar-video` hoặc job video pipeline.
+
+## Ràng buộc quan trọng
+
+- Bắt buộc có `HEYGEN_API_KEY` trong `.env` tại repo root.
+- Không in API key ra output/log.
+- Kiểm tra giới hạn file trước khi upload:
+  - Tối đa 32 MB.
+  - Image: `png` / `jpeg`.
+  - Video: `mp4` / `webm`.
+  - Audio: `mp3` / `wav`.
+  - PDF: được hỗ trợ.
+
+## Cách dùng nhanh
+
+```text
+$heygen-asset-upload — upload file local lên HeyGen và trả về asset_id
+```
+
+Script trực tiếp:
+
+```bash
+python skills/heygen-asset-upload/scripts/heygen_asset_upload.py upload \
+  --env-file .env \
+  --files jobs/<job_id>/input/raw_assets/images/person.jpg,jobs/<job_id>/input/raw_assets/audio/narration.mp3 \
+  --output jobs/<job_id>/source/heygen_assets.json
+```
+
+## Output
+
+Nếu có `--output`, script ghi JSON report chứa `path`, `asset_id`, `url`, `mime_type`, `size_bytes` và payload response cho từng file.
+
+Bạn có thể dùng asset đã upload dưới dạng:
+
+```json
+{ "type": "asset_id", "asset_id": "asset_..." }
+```
+
+## Troubleshooting
+
+- `Missing HEYGEN_API_KEY`: thêm key vào `.env`.
+- `File too large`: nén file hoặc dùng URL HTTPS public.
+- `Unsupported file type`: convert sang định dạng HeyGen hỗ trợ.
+- `401`: API key không hợp lệ hoặc không còn active.

@@ -97,11 +97,12 @@
                 "group": "Ingest",
                 "expanded": false,
                 "pages": [
-                  "skills/video-downloader"
+                  "skills/video-downloader",
+                  "skills/socialkit-api"
                 ]
               },
               {
-                "group": "Render Video",
+                "group": "Render",
                 "expanded": false,
                 "pages": [
                   "skills/video-renderer",
@@ -110,10 +111,11 @@
                 ]
               },
               {
-                "group": "Social Integration",
+                "group": "Video",
                 "expanded": false,
                 "pages": [
-                  "skills/socialkit-api"
+                  "skills/heygen-asset-upload",
+                  "skills/heygen-photo-avatar-video"
                 ]
               }
             ]
