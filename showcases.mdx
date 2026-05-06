@@ -239,6 +239,40 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
   </div>
 </div>
 
+## Video nhân hiệu — Giọng + caption ngực trên (normal + PUNCH)
+
+| Thuộc tính | Nội dung |
+| --- | --- |
+| **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts — phù hợp **video nhân hiệu**: nói trực tiếp, nhấn điểm hook bằng chữ. |
+| **VDS tóm tắt** | Clip gốc full màn; **caption vùng ngực trên** (Be Vietnam Pro): dòng **normal** trắng đồng bộ **word timestamps**; **PUNCH** ngắn (vàng `#ffe800` / đỏ `#ff1600` xen chunk), shadow đen **chỉ lớp dưới**, lớp trên fill sạch; chunk ~7–8 từ, punch chọn theo **ngữ nghĩa**; không xuống dòng giữa Whisper word; có decor icon quỹ đạo quanh PUNCH (tùy template). |
+| **Skills** | [word-timestamps-extractor](/skills/word-timestamps-extractor) · [subtitle-screen-splitter](/skills/subtitle-screen-splitter) · [subtitle_punch_tag_shortform](/skills/subtitle-punch-tag-shortform) · [video-job-manager](/skills/video-job-manager) · [remotion-best-practices](/skills/remotion-best-practices) |
+
+**Job** (pipeline mẫu): `jobs/2026-05-06_004_style-caption-chest-zone/` — đặt `final_video.mp4` cùng đường dẫn trong [kho demo](https://github.com/bachdyon/vas-showcases) để player dưới phát được.
+
+<div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "1rem",
+    alignItems: "flex-start",
+    marginTop: "1.25rem",
+  }}
+>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <video
+      controls
+      playsInline
+      width="100%"
+      style={{ borderRadius: 8, display: "block", aspectRatio: "9 / 16", objectFit: "cover", background: "#000" }}
+    >
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-05-06_004_personal_brand_no_broll/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+</div>
+
 ## Định dạng tiếp theo
 
 Khi có thêm loại video (ví dụ chỉ B-roll, toàn ảnh AI, tutorial dọc…), thêm một mục `## Tên định dạng — gợi nhớ ngắn` với cùng bộ: bảng thuộc tính + hàng player như trên.
