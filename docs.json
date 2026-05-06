@@ -90,7 +90,8 @@
                   "skills/video-audio-extractor",
                   "skills/audio-deduplicate",
                   "skills/word-timestamps-extractor",
-                  "skills/subtitle-screen-splitter"
+                  "skills/subtitle-screen-splitter",
+                  "skills/subtitle-punch-tag-shortform"
                 ]
               },
               {

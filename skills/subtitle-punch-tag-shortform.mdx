@@ -1,0 +1,31 @@
+---
+title: "subtitle_punch_tag_shortform"
+description: "Phụ đề short-form: normal + PUNCH đồng bộ word_id, chunk ~7–8 từ, punch 2 lớp z-index, không đứt giữa word"
+icon: "bolt"
+---
+
+<Info>
+  **Skill ID**: `$subtitle_punch_tag_shortform` · Nguồn: `skills/subtitle_punch_tag_shortform/SKILL.md` · Symlink Claude: `.claude/skills/subtitle_punch_tag_shortform`
+</Info>
+
+## Khi nào dùng
+
+- Làm caption kiểu short-form (**normal** + **PUNCH**), đồng bộ **word-level** (`W_0001` …).
+- Cần spec rõ: chọn punch **bằng ngữ nghĩa**, không rule cứng; **không bỏ sót / không trùng** từ; **không wrap giữa Whisper word**; punch **hai lớp** (shadow dưới, fill sạch trên).
+
+## Quick invoke
+
+```text
+$subtitle_punch_tag_shortform — spec punch_segments + Remotion punch/normal caption short-form
+```
+
+## Đọc thêm
+
+Toàn bộ checklist, JSON payload, layout flex + `Intl.Segmenter`, và QA: xem [SKILL.md đầy đủ](https://github.com/bachdyon/video-automator-skills/blob/main/skills/subtitle_punch_tag_shortform/SKILL.md).
+
+Tham chiếu code mẫu: `jobs/2026-05-06_004_style-caption-chest-zone/remotion/src/composition.tsx`.
+
+## Skill liên quan
+
+- [subtitle-screen-splitter](/skills/subtitle-screen-splitter) — tách dòng theo dấu câu / chữ hoa.
+- [word-timestamps-extractor](/skills/word-timestamps-extractor) — transcript word-level.
