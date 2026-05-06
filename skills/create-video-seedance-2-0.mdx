@@ -1,0 +1,82 @@
+---
+title: "create-video-seedance-2-0"
+description: "Tạo video KIE.AI Bytedance Seedance 2.0 Fast từ text, frame đầu/cuối, hoặc reference"
+icon: "clapperboard"
+---
+
+<Info>
+  **Skill ID**: `$create-video-seedance-2-0` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/create-video-seedance-2-0/SKILL.md) · [KIE.AI docs](https://docs.kie.ai/market/bytedance/seedance-2-fast)
+</Info>
+
+## Mục đích
+
+Tạo video bằng Bytedance Seedance 2.0 Fast qua KIE Market API. Skill hỗ trợ:
+
+- Text-to-video
+- Image-to-video với frame đầu
+- Image-to-video với frame đầu + frame cuối
+- Multimodal reference-to-video với ảnh, video, hoặc audio tham chiếu
+
+Video output được download vào `jobs/<id>/input/raw_assets/videos/seedance/` để dùng tiếp trong pipeline như raw asset.
+
+## Khi nào được invoke
+
+- Cần tạo B-roll/visual mới khi footage thật thiếu.
+- Cần animate ảnh sản phẩm/nhân vật thành clip ngắn.
+- Cần tạo cutaway theo prompt từ creative plan.
+- Cần dùng reference audio/video/image để định hướng chuyển động hoặc style.
+
+## Quy tắc quan trọng
+
+KIE ghi chú các mode sau là loại trừ nhau:
+
+- `first_frame_url`
+- `first_frame_url` + `last_frame_url`
+- `reference_image_urls` / `reference_video_urls` / `reference_audio_urls`
+
+Không trộn first/last frame với `reference_*_urls`. Nếu cần đảm bảo frame đầu/cuối giống ảnh chỉ định, ưu tiên mode first + last frame.
+
+Môi trường local **không dùng callback URL**; script luôn loop trạng thái qua `GET /api/v1/jobs/recordInfo`.
+
+## Cách sử dụng
+
+Cần `KIE_API_KEY` trong `.env` ở repo-root.
+
+```text
+$create-video-seedance-2-0 — tạo clip 9:16 dài 15s từ prompt này và tải kết quả về job
+```
+
+Hoặc gọi script trực tiếp:
+
+```bash
+# Text-to-video
+python skills/create-video-seedance-2-0/scripts/create_video_seedance_2_0.py generate \
+  --env-file .env \
+  --prompt "A cinematic vertical shot of a Vietnamese street food stall at night, handheld camera, warm practical lights" \
+  --aspect-ratio 9:16 \
+  --duration 15 \
+  --output-dir jobs/<job_id>/input/raw_assets/videos/seedance
+
+# First/last-frame image-to-video
+python skills/create-video-seedance-2-0/scripts/create_video_seedance_2_0.py generate \
+  --env-file .env \
+  --prompt "Animate the subject with a slow dolly-in, realistic lighting, natural cloth movement" \
+  --first-frame jobs/<job_id>/input/raw_assets/images/start.png \
+  --last-frame jobs/<job_id>/input/raw_assets/images/end.png \
+  --aspect-ratio 9:16 \
+  --output-dir jobs/<job_id>/input/raw_assets/videos/seedance
+```
+
+## Output
+
+```text
+jobs/<job_id>/input/raw_assets/videos/seedance/seedance_task_<taskId>.json
+jobs/<job_id>/input/raw_assets/videos/seedance/seedance_result_<taskId>_<n>.<ext>
+```
+
+Sau khi có video mới, tiếp tục pipeline:
+
+```bash
+.venv/bin/python -m tools.asset_index.exporter jobs/<job_id>/input/raw_assets/ \
+  --output jobs/<job_id>/source/asset_semantics.toml
+```

@@ -1,0 +1,71 @@
+---
+title: "create-edit-image-gpt-image-2"
+description: "Tạo hoặc edit ảnh qua KIE.AI GPT Image 2 từ text và ảnh tham chiếu"
+icon: "image-plus"
+---
+
+<Info>
+  **Skill ID**: `$create-edit-image-gpt-image-2` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/create-edit-image-gpt-image-2/SKILL.md) · [KIE.AI docs](https://docs.kie.ai/market/gpt/gpt-image-2-image-to-image)
+</Info>
+
+## Mục đích
+
+Tạo ảnh mới từ prompt hoặc edit ảnh có sẵn bằng GPT Image 2 qua KIE Market API. Skill tự chọn model:
+
+- Không có ảnh tham chiếu → `gpt-image-2-text-to-image`
+- Có `--input-images` → `gpt-image-2-image-to-image`
+
+Ảnh output được download vào `jobs/<id>/input/raw_assets/images/gpt_image_2/` để watcher asset-index pickup như asset thật.
+
+## Khi nào được invoke
+
+- Cần tạo ảnh AI từ text nhưng muốn dùng KIE/GPT Image 2 thay vì fal.ai.
+- Cần edit ảnh sản phẩm, nhân vật, background, layout, thumbnail, poster.
+- Có 1+ ảnh tham chiếu và muốn agent upload ảnh local lên KIE storage tạm rồi submit task.
+
+## Cách sử dụng
+
+Cần `KIE_API_KEY` trong `.env` ở repo-root. Môi trường local **không dùng callback URL**; script luôn loop trạng thái qua `GET /api/v1/jobs/recordInfo`.
+
+```text
+$create-edit-image-gpt-image-2 — edit ảnh sản phẩm này, giữ nguyên label và shape,
+đổi background thành bếp sáng hiện đại
+```
+
+Hoặc gọi script trực tiếp:
+
+```bash
+# Text-to-image
+python skills/create-edit-image-gpt-image-2/scripts/create_edit_image_gpt_image_2.py generate \
+  --env-file .env \
+  --prompt "A premium skincare product photo on a clean glass pedestal, soft studio lighting" \
+  --aspect-ratio auto \
+  --output-dir jobs/<job_id>/input/raw_assets/images/gpt_image_2
+
+# Image-to-image / edit
+python skills/create-edit-image-gpt-image-2/scripts/create_edit_image_gpt_image_2.py generate \
+  --env-file .env \
+  --prompt "Keep the product exactly the same, replace the background with a bright modern kitchen" \
+  --input-images jobs/<job_id>/input/raw_assets/images/product.jpg \
+  --output-dir jobs/<job_id>/input/raw_assets/images/gpt_image_2
+```
+
+## Output
+
+```text
+jobs/<job_id>/input/raw_assets/images/gpt_image_2/gpt_image_2_task_<taskId>.json
+jobs/<job_id>/input/raw_assets/images/gpt_image_2/gpt_image_2_result_<taskId>_<n>.<ext>
+```
+
+Sau khi có ảnh mới, tiếp tục pipeline:
+
+```bash
+.venv/bin/python -m tools.asset_index.exporter jobs/<job_id>/input/raw_assets/ \
+  --output jobs/<job_id>/source/asset_semantics.toml
+```
+
+## Prompt tốt
+
+- Product: ghi rõ phần phải giữ nguyên: logo, label text, shape, màu, chất liệu.
+- Người thật/nhân vật: ghi rõ giữ identity, pose, outfit, expression hay chỉ dùng làm style reference.
+- Ads/thumbnails: nêu output use case như "TikTok vertical ad", "e-commerce hero image", "YouTube thumbnail".

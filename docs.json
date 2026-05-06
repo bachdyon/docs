@@ -75,6 +75,8 @@
                   "skills/asset-semantic-extractor",
                   "skills/semantic-asset-mapper",
                   "skills/shot-coverage-planner",
+                  "skills/create-edit-image-gpt-image-2",
+                  "skills/create-video-seedance-2-0",
                   "skills/fal-image-generator",
                   "skills/overlay-subject-placement"
                 ]
