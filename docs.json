@@ -108,6 +108,7 @@
                 "pages": [
                   "skills/filepost-file-upload",
                   "skills/heygen-asset-upload",
+                  "skills/video-compress-under-25mb",
                   "skills/zernio-upload-direct"
                 ]
               },

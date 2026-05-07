@@ -1,36 +1,43 @@
 ---
 title: "free-tts"
-description: "Tạo narration miễn phí/local bằng VieNeu-TTS khi không dùng AusyncLab"
-icon: "audio-lines"
+description: "Tạo giọng đọc miễn phí/local bằng VieNeu-TTS: preset voice, voice clone, khi không dùng AusyncLab"
+icon: "microphone-lines"
 ---
 
 <Info>
-  **Skill ID**: `$free-tts` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/free_tts/SKILL.md)
+  **Skill ID**: `$free-tts` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/free_tts/SKILL.md) · Engine: [VieNeu-TTS](https://github.com/pnnbao97/VieNeu-TTS)
 </Info>
 
 ## Mục đích
 
-Sinh giọng đọc tiếng Việt bằng VieNeu-TTS (local/free) để tạo `voice.wav` ổn định cho pipeline, đặc biệt khi không có `AUSYNCLAB_API_KEY` hoặc user yêu cầu không dùng AusyncLab.
+Sinh narration tiếng Việt (`.wav` / `.mp3`) bằng **VieNeu-TTS** khi không có `AUSYNCLAB_API_KEY`, hoặc khi user yêu cầu free/local TTS thay AusyncLab.
+
+Skill hỗ trợ:
+
+- Preset voices (`Binh`, `Tuyen`, `Vinh`, `Doan`, `Ly`, `Ngoc`)
+- Voice clone từ sample audio
+- Registry `.shared` để đặt tên giọng dùng lại giữa các job
+- Tự cài package `vieneu` nếu môi trường chưa có
 
 ## Khi nào invoke
 
-- User yêu cầu free TTS/local TTS/VieNeu-TTS.
+- User yêu cầu free TTS, local TTS, VieNeu-TTS hoặc không dùng AusyncLab.
 - `.env` không có `AUSYNCLAB_API_KEY` hoặc key rỗng.
-- Cần tạo narration đầu vào cho `$word-timestamps-extractor` và render plan.
+- Cần narration đầu vào cho `$word-timestamps-extractor` và render plan.
+- User nói “tự động tạo giọng đọc cho…” hoặc cần clone giọng từ file `.wav` / `.mp3`.
 
 ## Quy tắc chính
 
 - Không yêu cầu hoặc in `AUSYNCLAB_API_KEY`.
 - Giữ nguyên dấu tiếng Việt trong text narration.
-- Nếu thiếu package `vieneu`, script có thể tự cài.
 
 ## Cách dùng nhanh
 
 ```text
-$free-tts — tạo voice.wav miễn phí bằng VieNeu-TTS cho job hiện tại
+$free-tts — tạo giọng đọc miễn phí bằng VieNeu-TTS cho job hiện tại
 ```
 
-Script trực tiếp:
+Script với `--text`:
 
 ```bash
 .venv/bin/python skills/free_tts/scripts/free_tts.py \
@@ -48,51 +55,7 @@ Từ creative plan:
   --output jobs/<job_id>/source/voice_selection.toml
 ```
 
-## Output
-
-- Global: `source/voice.wav`, `source/voice_selection.toml`
-- Theo job: `jobs/<job_id>/source/voice.wav`, `jobs/<job_id>/source/voice_selection.toml`
-
-## Troubleshooting
-
-- Thiếu `vieneu`: cài bằng `python -m pip install vieneu`.
-- Text quá ngắn gây phát âm kém: ghép thành câu tự nhiên hơn.
-- Tên riêng/English khó đọc: thử `--mode turbo`.
----
-title: "free-tts"
-description: "Tạo giọng đọc miễn phí/local bằng VieNeu-TTS, hỗ trợ preset voice và voice clone"
-icon: "audio-lines"
----
-
-<Info>
-  **Skill ID**: `$free-tts` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/free_tts/SKILL.md) · Engine: [VieNeu-TTS](https://github.com/pnnbao97/VieNeu-TTS)
-</Info>
-
-## Mục đích
-
-Sinh narration `.wav` / `.mp3` bằng **VieNeu-TTS** khi không có `AUSYNCLAB_API_KEY`, hoặc khi user yêu cầu dùng free/local TTS thay AusyncLab.
-
-Skill hỗ trợ:
-
-- Preset voices của VieNeu-TTS (`Binh`, `Tuyen`, `Vinh`, `Doan`, `Ly`, `Ngoc`)
-- Voice clone từ sample audio
-- Registry `.shared` để đặt tên giọng dùng lại giữa các job
-- Auto-install package `vieneu` nếu môi trường chưa có
-
-## Khi nào được invoke
-
-- User nói “tự động tạo giọng đọc cho...”
-- `.env` không có `AUSYNCLAB_API_KEY`
-- User yêu cầu “free TTS”, “VieNeu-TTS”, “local TTS”, hoặc “không dùng AusyncLab”
-- Cần clone giọng từ sample `.wav` / `.mp3`
-
-## Cách dùng nhanh
-
-```text
-$free-tts — tạo giọng đọc miễn phí cho script trong job hiện tại
-```
-
-Hoặc gọi script trực tiếp:
+Preset voice + narration file:
 
 ```bash
 .venv/bin/python skills/free_tts/scripts/free_tts.py \
@@ -102,15 +65,15 @@ Hoặc gọi script trực tiếp:
   --output jobs/<job_id>/source/voice_selection.toml
 ```
 
-## Voice clone đặt tên
+## Voice clone và registry `.shared`
 
-`.shared` nằm cùng cấp `.env` và dùng format:
+File `.shared` nằm cùng cấp `.env`, ví dụ:
 
 ```text
 CON_VO=raw_assets/audio/voice_samples/CON_VO_sample.wav
 ```
 
-Tên giọng phải là ASCII không dấu: `A-Z`, `a-z`, `0-9`, `_`, bắt đầu bằng chữ.
+Tên giọng: ASCII không dấu (`A-Z`, `a-z`, `0-9`, `_`), bắt đầu bằng chữ.
 
 Lưu giọng:
 
@@ -131,5 +94,16 @@ Dùng giọng đã lưu:
 ```
 
 <Tip>
-  `turbo` phù hợp khi clone giọng vì không cần `ref_text`; `standard` là mặc định cho preset voice.
+  `turbo` phù hợp khi clone giọng (không cần `ref_text`); `standard` là mặc định cho preset voice.
 </Tip>
+
+## Output
+
+- Global: `source/voice.wav`, `source/voice_selection.toml`
+- Theo job: `jobs/<job_id>/source/voice.wav`, `jobs/<job_id>/source/voice_selection.toml`
+
+## Troubleshooting
+
+- Thiếu `vieneu`: `python -m pip install vieneu`.
+- Text quá ngắn gây phát âm kém: ghép thành câu tự nhiên hơn.
+- Tên riêng / English khó đọc: thử `--mode turbo`.

@@ -1,0 +1,91 @@
+---
+title: "video-compress-under-25mb"
+description: "Nén MP4/MOV local để dưới ~25MB cho upload API, inbox hoặc giới hạn file nhỏ"
+icon: "file-zipper"
+---
+
+<Info>
+  **Skill ID**: `$video-compress-under-25mb` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video-compress-under-25mb/SKILL.md)
+</Info>
+
+## Mục đích
+
+Giảm kích thước file video local (MP4/MOV) để đạt ngưỡng upload (thường **≤ 25 MB**), phù hợp trước khi gọi `$zernio-upload-direct`, đính kèm WhatsApp/Messenger hoặc API có giới hạn dung lượng.
+
+Skill ưu tiên:
+
+- Giữ **độ phân giải** và **fps** gốc; giảm **bitrate** trước.
+- Mặc định **H.264 + AAC trong MP4** để tương thích rộng.
+- Hai lần pass H.264 khi cần khớp kích thước gần như chính xác.
+
+## Khi nào invoke
+
+- Video lớn hơn giới hạn upload (vd. Zernio **25 MB**).
+- User yêu cầu nén video cho gửi tin nhắn / API / nền tảng giới hạn file nhỏ.
+- Cần bản xem thử nhỏ kèm JSON metadata và ảnh preview.
+
+## Ràng buộc quan trọng
+
+- **Không** ghi đè file đầu vào trừ khi user yêu cầu rõ ràng.
+- Mặc định target ~**24 MiB** để tránh bị từ chối sát ngưỡng API.
+- Nén mất dữ liệu — mục tiêu là chất lượng chấp nhận được trên mobile/social.
+- Sau khi chạy, kiểm tra kích thước thực, codec, độ phân giải, duration và bitrate trong file JSON kèm theo.
+
+## Cách dùng nhanh
+
+```text
+$video-compress-under-25mb — nén video xuống dưới ngưỡng MB cho upload
+```
+
+Nén mặc định (output cạnh file gốc, tên `_under25mb_h264`):
+
+```bash
+.venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
+  input.mp4
+```
+
+Ghi ra cạnh output của job:
+
+```bash
+.venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
+  jobs/<job_id>/output/final_video.mp4 \
+  --output jobs/<job_id>/output/final_video_under25mb_h264.mp4
+```
+
+Tuỳ chỉnh ngưỡng và âm thanh:
+
+```bash
+.venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
+  input.mp4 \
+  --max-mib 25 \
+  --target-mib 23.5 \
+  --audio-bitrate-kbps 96
+```
+
+Tuỳ chọn **HEVC** (chất lượng tốt hơn cùng dung lượng, tương thích thiết bị hẹp hơn):
+
+```bash
+.venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
+  input.mp4 \
+  --codec h265
+```
+
+## Output
+
+Script tạo (theo stem đầu vào, trừ khi chỉ định `--output`):
+
+- `<stem>_under25mb_h264.mp4` — file đã nén
+- `<stem>_under25mb_h264.json` — metadata, cấu hình ffmpeg, bitrate mục tiêu, cờ `under_max_size`
+- `<stem>_under25mb_h264_preview.jpg` — preview
+
+## Workflow gợi ý
+
+1. Chạy script với path video gốc.
+2. Đọc JSON; chỉ upload khi `under_max_size` đúng theo yêu cầu.
+3. Với `$zernio-upload-direct`, upload sau khi đã xác nhận dung lượng.
+
+## Gợi ý tham chiếu
+
+- 25 MiB ≈ `26_214_400` byte.
+- Video dọc ~1080p ~60s dưới 25 MiB thường cần tổng bitrate khoảng **3,0–3,3 Mbps**.
+- Nếu không đạt chất lượng chấp nhận được ở độ phân giải gốc, báo user và đề xuất pass giảm resolution.
