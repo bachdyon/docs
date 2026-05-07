@@ -1,0 +1,85 @@
+---
+title: "zernio-upload-direct"
+description: "Upload attachment local lên Zernio để lấy URL tạm dùng cho inbox message và media payload"
+icon: "cloud-arrow-up"
+---
+
+<Info>
+  **Skill ID**: `$zernio-upload-direct` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/zernio-upload-direct/SKILL.md) · Provider API: [Zernio](https://docs.zernio.com/messages/upload-media-direct)
+</Info>
+
+## Mục đích
+
+Upload ảnh, video, audio hoặc file local lên Zernio qua `POST /v1/media/upload-direct` để lấy public URL tạm thời cho inbox message, Messenger, WhatsApp, Telegram hoặc payload media khác.
+
+## Khi nào invoke
+
+- Bạn cần gửi attachment qua Zernio inbox message.
+- Bạn có file local và cần URL public nhanh, không qua browser upload token.
+- Bạn cần chuẩn bị `attachment_url` / `attachmentUrl` cho direct API payload.
+
+## Ràng buộc quan trọng
+
+- Bắt buộc có `ZERNIO_API_KEY` trong môi trường hoặc `.env`.
+- Auth dùng `Authorization: Bearer <ZERNIO_API_KEY>`.
+- Không in, log hoặc commit API key.
+- File upload phải nhỏ hơn hoặc bằng 25 MB.
+- URL trả về là tạm thời; Zernio lưu file trong 7 ngày.
+- Nếu video vượt 25 MB, dùng `$video-compress-under-25mb` trước khi upload.
+
+## Cách dùng nhanh
+
+```text
+$zernio-upload-direct — upload file local lên Zernio và trả về attachment URL
+```
+
+Upload một file:
+
+```bash
+.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
+  --env-file .env \
+  jobs/<job_id>/input/raw_assets/images/photo.jpg
+```
+
+Upload và lưu response:
+
+```bash
+.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
+  --env-file .env \
+  --output jobs/<job_id>/source/zernio_upload.json \
+  jobs/<job_id>/output/final_video_under_25mb.mp4
+```
+
+Override MIME type khi autodetect sai:
+
+```bash
+.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
+  --env-file .env \
+  --content-type image/jpeg \
+  path/to/photo.bin
+```
+
+## Output
+
+Response thành công có các field chính:
+
+```json
+{
+  "url": "https://...",
+  "filename": "example.jpg",
+  "contentType": "image/jpeg",
+  "size": 12345
+}
+```
+
+Dùng `url` trả về cho:
+
+- `attachment_url` khi gọi Zernio MCP inbox message.
+- `attachmentUrl` khi gọi direct API payload.
+
+## Troubleshooting
+
+- `Missing ZERNIO_API_KEY`: thêm key vào `.env` hoặc export trong shell.
+- File lớn hơn 25 MB: nén bằng `$video-compress-under-25mb` hoặc chọn file nhỏ hơn.
+- `401`: API key thiếu, sai, hết hạn hoặc chưa load vào process hiện tại.
+- `CERTIFICATE_VERIFY_FAILED`: chạy bằng `.venv/bin/python`; script tự dùng `certifi` nếu có.

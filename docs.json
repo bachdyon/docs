@@ -103,6 +103,15 @@
                 ]
               },
               {
+                "group": "Cloud Storage",
+                "expanded": false,
+                "pages": [
+                  "skills/filepost-file-upload",
+                  "skills/heygen-asset-upload",
+                  "skills/zernio-upload-direct"
+                ]
+              },
+              {
                 "group": "Render",
                 "expanded": false,
                 "pages": [
@@ -115,7 +124,6 @@
                 "group": "Video",
                 "expanded": false,
                 "pages": [
-                  "skills/heygen-asset-upload",
                   "skills/heygen-photo-avatar-video"
                 ]
               }

@@ -1,0 +1,104 @@
+---
+title: "filepost-file-upload"
+description: "Upload file local lên FilePost để lấy CDN URL bền vững, hoặc list/get/delete file đã upload"
+icon: "cloud-arrow-up"
+---
+
+<Info>
+  **Skill ID**: `$filepost-file-upload` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/filepost-file-upload/SKILL.md) · Provider API: [FilePost](https://filepost.dev/docs)
+</Info>
+
+## Mục đích
+
+Upload file local lên FilePost để lấy public CDN URL bền vững, phù hợp khi cần URL media/file dùng lại nhiều lần thay vì URL tạm thời.
+
+Skill cũng hỗ trợ quản lý file đã upload:
+
+- List file theo trang.
+- Get chi tiết bằng `file_id`.
+- Delete file khi user yêu cầu rõ ràng.
+
+## Khi nào invoke
+
+- Bạn cần một public HTTPS URL lâu dài cho ảnh/video/audio/file.
+- Bạn muốn upload final render hoặc asset để chia sẻ cho hệ thống khác.
+- Bạn cần kiểm tra, liệt kê hoặc xóa file đã upload trên FilePost.
+
+## Ràng buộc quan trọng
+
+- Bắt buộc có `FILEPOST_API_KEY` trong môi trường hoặc `.env`.
+- Auth dùng header `X-API-Key`, không dùng Bearer token.
+- Không in, log hoặc commit API key.
+- Kiểm tra giới hạn theo plan trước khi upload:
+  - Free: 50 MB/file.
+  - Starter: 200 MB/file.
+  - Pro: 500 MB/file.
+- `delete` là thao tác phá hủy; chỉ chạy khi user yêu cầu đúng `file_id`.
+
+## Cách dùng nhanh
+
+```text
+$filepost-file-upload — upload file local lên FilePost và trả về CDN URL
+```
+
+Upload một file:
+
+```bash
+.venv/bin/python skills/filepost-file-upload/scripts/filepost_client.py \
+  --env-file .env \
+  upload jobs/<job_id>/output/final.mp4
+```
+
+List file:
+
+```bash
+.venv/bin/python skills/filepost-file-upload/scripts/filepost_client.py \
+  --env-file .env \
+  list --page 1 --per-page 50
+```
+
+Get chi tiết:
+
+```bash
+.venv/bin/python skills/filepost-file-upload/scripts/filepost_client.py \
+  --env-file .env \
+  get abc123def456
+```
+
+Delete file:
+
+```bash
+.venv/bin/python skills/filepost-file-upload/scripts/filepost_client.py \
+  --env-file .env \
+  delete abc123def456
+```
+
+## Output
+
+Upload thành công trả về JSON có các field chính:
+
+```json
+{
+  "file_id": "abc123def456",
+  "url": "https://cdn.filepost.dev/file/filepost/uploads/ab/abc123def456.jpg",
+  "name": "photo.jpg",
+  "size": 45321,
+  "content_type": "image/jpeg"
+}
+```
+
+Khi cần lưu report:
+
+```bash
+.venv/bin/python skills/filepost-file-upload/scripts/filepost_client.py \
+  --env-file .env \
+  --output source/filepost_upload.json \
+  upload jobs/<job_id>/output/final.mp4
+```
+
+## Troubleshooting
+
+- `Missing FILEPOST_API_KEY`: thêm key vào `.env` hoặc export trong shell.
+- Upload bị từ chối vì size: kiểm tra giới hạn plan hoặc nén/chia file trước.
+- `401` / `403`: API key thiếu quyền, sai, hoặc chưa load vào process hiện tại.
+- Delete nhầm file: FilePost xem `delete` là thao tác xóa thật; cần xác nhận `file_id` trước khi chạy.
