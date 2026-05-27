@@ -1,41 +1,45 @@
 ---
 title: "heygen-asset-upload"
-description: "Upload ảnh/video/audio/PDF lên HeyGen và nhận asset_id tái sử dụng"
+description: "Upload ảnh/video/audio/PDF lên HeyGen POST /v3/assets, nhận asset_id tái sử dụng"
 icon: "upload"
 ---
 
 <Info>
-  **Skill ID**: `$heygen-asset-upload` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/heygen-asset-upload/SKILL.md)
+  **Skill ID**: `$heygen-asset-upload` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/heygen-asset-upload/SKILL.md) · [HeyGen Upload Assets](https://developers.heygen.com/docs/upload-assets)
 </Info>
 
-## Mục đích
+## Rules
 
-Upload file local lên HeyGen qua `POST /v3/assets` để nhận `asset_id`, sau đó tái sử dụng cho các flow khác như avatar, image-to-video, video translation hoặc bất kỳ endpoint HeyGen nào nhận đầu vào dạng file.
+- Use this skill for HeyGen `POST /v3/assets` uploads.
+- Read `.env` from the repo root before running scripts. Require `HEYGEN_API_KEY`; never print the key.
+- Prefer uploading local files once and reusing returned `asset_id` values for later HeyGen calls.
+- Check file constraints before upload: max 32 MB; images `png`/`jpeg`; video `mp4`/`webm`; audio `mp3`/`wav`; PDFs supported.
+- For Vietnamese user-facing output, write Vietnamese with accents. Keep API fields, endpoint paths, and enum values unchanged.
 
-## Khi nào invoke
-
-- Bạn cần upload ảnh/video/audio/PDF lên HeyGen.
-- Bạn muốn upload một lần và tái dùng `asset_id` nhiều lần.
-- Bạn đang chuẩn bị asset cho `$heygen-photo-avatar-video` hoặc job video pipeline.
-
-## Ràng buộc quan trọng
-
-- Bắt buộc có `HEYGEN_API_KEY` trong `.env` tại repo root.
-- Không in API key ra output/log.
-- Kiểm tra giới hạn file trước khi upload:
-  - Tối đa 32 MB.
-  - Image: `png` / `jpeg`.
-  - Video: `mp4` / `webm`.
-  - Audio: `mp3` / `wav`.
-  - PDF: được hỗ trợ.
-
-## Cách dùng nhanh
+## API
 
 ```text
-$heygen-asset-upload — upload file local lên HeyGen và trả về asset_id
+POST https://api.heygen.com/v3/assets
+Header: X-Api-Key: <HEYGEN_API_KEY>
+Body: multipart/form-data file=@<path>
 ```
 
-Script trực tiếp:
+Successful responses include:
+
+```json
+{
+  "data": {
+    "asset_id": "asset_abc123def456",
+    "url": "https://files.heygen.ai/assets/asset_abc123def456.png",
+    "mime_type": "image/png",
+    "size_bytes": 245760
+  }
+}
+```
+
+## Script
+
+Upload one or more files:
 
 ```bash
 python skills/heygen-asset-upload/scripts/heygen_asset_upload.py upload \
@@ -44,11 +48,34 @@ python skills/heygen-asset-upload/scripts/heygen_asset_upload.py upload \
   --output jobs/<job_id>/source/heygen_assets.json
 ```
 
-## Output
+Print only the compact JSON response:
 
-Nếu có `--output`, script ghi JSON report chứa `path`, `asset_id`, `url`, `mime_type`, `size_bytes` và payload response cho từng file.
+```bash
+python skills/heygen-asset-upload/scripts/heygen_asset_upload.py upload \
+  --env-file .env \
+  --files path/to/file.png
+```
 
-Bạn có thể dùng asset đã upload dưới dạng:
+## Outputs
+
+When `--output` is provided, the script writes:
+
+```text
+{
+  "assets": [
+    {
+      "path": "...",
+      "asset_id": "asset_...",
+      "url": "https://...",
+      "mime_type": "image/png",
+      "size_bytes": 12345,
+      "response": {}
+    }
+  ]
+}
+```
+
+Use uploaded assets in HeyGen file inputs as:
 
 ```json
 { "type": "asset_id", "asset_id": "asset_..." }
@@ -56,7 +83,12 @@ Bạn có thể dùng asset đã upload dưới dạng:
 
 ## Troubleshooting
 
-- `Missing HEYGEN_API_KEY`: thêm key vào `.env`.
-- `File too large`: nén file hoặc dùng URL HTTPS public.
-- `Unsupported file type`: convert sang định dạng HeyGen hỗ trợ.
-- `401`: API key không hợp lệ hoặc không còn active.
+- `Missing HEYGEN_API_KEY`: add it to `.env` or export it in the shell.
+- `File too large`: HeyGen limits uploads to 32 MB; compress or provide a public HTTPS URL instead.
+- `Unsupported file type`: convert to a supported format before upload.
+- `401`: invalid or inactive HeyGen API key.
+- `400` / `422`: inspect the saved response; confirm the file field is named exactly `file`.
+
+## Sources
+
+- HeyGen Upload Assets: https://developers.heygen.com/docs/upload-assets

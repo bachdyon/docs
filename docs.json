@@ -24,14 +24,6 @@
             ]
           },
           {
-            "group": "Cài đặt đầy đủ",
-            "pages": [
-              "installation/macos",
-              "installation/windows",
-              "installation/linux"
-            ]
-          },
-          {
             "group": "Cấu hình",
             "pages": [
               "configuration/env",

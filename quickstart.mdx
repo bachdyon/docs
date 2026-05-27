@@ -1,207 +1,237 @@
 ---
 title: "Bắt đầu nhanh"
-description: "Cài Asset Index trong < 5 phút bằng auto installer"
+description: "Dành cho người mới: mở repo bằng AI agent và copy prompt"
 icon: "rocket"
 ---
 
+Trang này dành cho người mới, không rành terminal, không biết phải cài gì trước.
+
+## Repo này là gì?
+
+Repo này là một bộ dụng cụ để AI agent hỗ trợ bạn làm video ngắn.
+
+Bạn đưa cho agent kịch bản, video thô, ảnh, audio hoặc yêu cầu sáng tạo. Agent sẽ đọc hướng dẫn trong repo này để biết nên phân tích asset, chọn cảnh, tạo giọng đọc, làm phụ đề, dựng video và render theo thứ tự nào.
+
+Nói đơn giản: đây không phải là một app có nút bấm sẵn. Đây là một “workspace” để bạn mở bằng Cursor, Claude, Codex, Antigravity hoặc app AI tương tự, rồi giao việc bằng prompt.
+
 <Info>
-  **Auto installer cài cái gì?**
-
-  Cài tự động module **Asset Index** — watcher chạy nền + DB SQLite + lệnh Search/Status. Đây là phần cốt lõi để mọi skills truy vấn asset bằng ngôn ngữ tự nhiên.
-
-  **Chưa bao gồm**: Node.js cho render Remotion, AusyncLab cho voice TTS. Nếu muốn full pipeline → đọc [Cài đặt đầy đủ](/installation/macos).
+  Nếu bạn chưa biết nên bắt đầu từ đâu, chỉ cần tải repo, mở đúng thư mục bằng app AI, rồi copy prompt đầu tiên trong trang này.
 </Info>
 
-<Note>
-  Installer tự kiểm tra Python 3.10+ và `ffmpeg`/`ffprobe`. Nếu thiếu sẽ in link cách cài (`brew install ffmpeg` / `winget install Gyan.FFmpeg`) và dừng. API keys (OpenAI + Gemini) sẽ được prompt trong quá trình cài — trình duyệt tự mở trang tạo key.
-</Note>
+Bạn chỉ cần làm 3 việc:
 
-## Bước 1 — Tải repo về máy
+1. Tải repo này về máy.
+2. Mở đúng thư mục repo bằng Cursor, Claude, Codex, Antigravity hoặc app AI bạn đang dùng.
+3. Copy prompt mẫu bên dưới và gửi cho AI agent.
+
+<Info>
+  Đừng tự cài lung tung từ đầu. Hãy để AI agent đọc repo, kiểm tra máy, rồi nói rõ bạn cần cài gì cho đúng tính năng bạn muốn dùng.
+</Info>
+
+## 1. Tải repo về máy
+
+Cách dễ nhất:
+
+1. Mở trang GitHub của repo: [video-automator-skills](https://github.com/bachdyon/video-automator-skills).
+2. Bấm nút **Code** màu xanh.
+3. Chọn **Download ZIP**.
+4. Giải nén file vừa tải.
+5. Bạn sẽ có một thư mục tên gần giống `video-automator-skills`.
+
+<Tip>
+  Nếu tên thư mục có thêm chữ `-main` ở cuối cũng không sao. Quan trọng là bên trong thư mục đó có file `AGENTS.md`.
+</Tip>
 
 <AccordionGroup>
-  <Accordion icon="code-branch" title="Cách 1 — Git (khuyến nghị)">
-    Cần Git cài sẵn (`git --version`). Nếu chưa có:
-
-    - **macOS**: `xcode-select --install` (Apple cài kèm Git CLI).
-    - **Windows**: `winget install Git.Git`.
-    - **Linux**: `sudo apt install git` / `sudo dnf install git`.
-
-    Clone về home directory (hoặc nơi bạn muốn):
+  <Accordion title="Nếu bạn đã biết dùng Git">
+    Bạn có thể clone repo thay vì tải ZIP:
 
     ```bash
-    cd ~
     git clone https://github.com/bachdyon/video-automator-skills
-    cd video-automator-skills
     ```
 
-    <Tip>Lợi thế: dễ `git pull` lấy update sau này. Xem [Cập nhật & Gỡ cài đặt](/maintenance).</Tip>
-  </Accordion>
-
-  <Accordion icon="download" title="Cách 2 — Download ZIP">
-    1. Mở https://github.com/bachdyon/video-automator-skills.
-    2. Click nút **Code** (xanh) → **Download ZIP**.
-    3. Giải nén:
-       - **macOS**: double-click file `.zip` trong Finder.
-       - **Windows**: chuột phải → **Extract All…**.
-    4. Đổi tên folder thành `video-automator-skills` (bỏ hậu tố `-main` nếu có).
-
-    <Warning>Cách này không có `.git/` → không `git pull` được. Mỗi lần update phải tải ZIP mới và copy đè. Khuyến nghị dùng cách 1.</Warning>
+    Cách này tiện hơn khi muốn cập nhật repo sau này.
   </Accordion>
 </AccordionGroup>
 
-## Bước 2 — Mở folder & cài skill bên thứ ba
+## 2. Mở thư mục bằng AI agent
 
-<Info>
-  Repo có sẵn `AGENTS.md` ở root + 28 project skills trong `skills/<name>/SKILL.md`. Codex, Cursor, Claude Code đều tự pickup khi mở folder. Bạn chỉ cần thêm 1 skill bên thứ ba `$remotion-best-practices` (cài bằng `scripts/ensure-remotion-skill.sh`) để render Remotion.
-</Info>
+Trong app AI bạn dùng, hãy chọn **Open Folder**, **Open Project**, hoặc **Open Workspace**, rồi chọn thư mục `video-automator-skills`.
 
-<AccordionGroup>
-  <Accordion icon="code" title="Cursor (khuyến nghị)">
-    1. Mở folder qua **File → Open Folder…**, hoặc CLI từ trong repo:
-
-       ```bash
-       cursor .
-       ```
-
-    2. Cursor tự nhận `AGENTS.md` làm workspace rule. Verify ở **Settings → Rules** → mục **Project rules** phải hiện `AGENTS.md`.
-
-    3. 28 project skills nằm trong `skills/<name>/SKILL.md` được tham chiếu qua `$skill-name` từ `AGENTS.md` — Cursor sẽ tự load đúng `SKILL.md` khi task trùng.
-
-    4. Cài skill bên thứ ba `$remotion-best-practices` bằng terminal tích hợp (mở bằng phím tắt mở terminal trong Cursor):
-
-       ```bash
-       bash scripts/ensure-remotion-skill.sh --install
-       ```
-  </Accordion>
-
-  <Accordion icon="terminal" title="Codex">
-    1. Cài Codex CLI nếu chưa có:
-
-       ```bash
-       npm i -g @openai/codex
-       ```
-
-    2. `cd` vào folder repo và mở session:
-
-       ```bash
-       cd ~/video-automator-skills
-       codex
-       ```
-
-       Codex tự đọc `AGENTS.md` ở root → pickup pipeline rule + danh sách 28 project skills (`$asset-semantic-extractor`, `$video-creative-planner`, …).
-
-    3. Cài skill bên thứ ba `$remotion-best-practices`:
-
-       ```bash
-       bash scripts/ensure-remotion-skill.sh --install
-       ```
-
-       Script wrap `npx skills add remotion-dev/skills --yes`, ghi `skills-lock.json` và tạo symlink `.claude/skills/remotion-best-practices` (cho Claude Code dùng chung).
-  </Accordion>
-
-  <Accordion icon="code-branch" title="Claude Code">
-    1. Cài Claude Code nếu chưa có:
-
-       ```bash
-       npm i -g @anthropic-ai/claude-code
-       ```
-
-    2. `cd` vào folder repo và mở session:
-
-       ```bash
-       cd ~/video-automator-skills
-       claude
-       ```
-
-       Claude tự discover `.claude/skills/*/SKILL.md` (đã symlink sang `skills/` và `.agents/skills/remotion-best-practices`).
-
-    3. Trong session gõ `/skills` để verify danh sách. Phải thấy đủ 18 skill (17 project + `remotion-best-practices`).
-
-    4. Nếu thiếu `remotion-best-practices` (chưa cài hoặc symlink bị xoá), chạy:
-
-       ```bash
-       bash scripts/ensure-remotion-skill.sh --install
-       ```
-
-       Script tự tái tạo symlink `.claude/skills/remotion-best-practices`.
-  </Accordion>
-</AccordionGroup>
-
-## Bước 3 — Chạy installer
-
-<AccordionGroup>
-  <Accordion icon="apple" title="macOS">
-    1. Mở Finder, vào thư mục `video-automator-skills` vừa clone/giải nén.
-    2. Vào folder `setup/`, **double-click `Install.command`**.
-    3. Khi terminal hiện, làm theo prompt:
-       - Trình duyệt tự mở 2 trang tạo key — copy về và dán vào terminal.
-       - Installer tự tạo `.venv`, cài deps, đăng ký watcher chạy nền (launchd).
-    4. Xong. Watcher chạy nền và tự bật lại sau khi reboot.
-
-    <Tip>Lần đầu chạy `Install.command`, macOS có thể chặn vì script chưa được sign. Nếu vậy: chuột phải → Open → Open.</Tip>
-  </Accordion>
-
-  <Accordion icon="windows" title="Windows">
-    1. Mở File Explorer, vào thư mục `video-automator-skills` vừa clone/giải nén → folder `setup\`.
-    2. **Double-click `Install.bat`**.
-    3. Khi PowerShell/cmd hiện, làm theo prompt:
-       - Trình duyệt tự mở 2 trang tạo key — copy về và dán vào terminal.
-       - Installer tự tạo `.venv`, cài deps, đăng ký watcher chạy nền (Task Scheduler).
-    4. Xong. Watcher chạy nền và tự bật lại sau khi đăng nhập lại.
-
-    <Warning>Nếu đường dẫn repo > 260 ký tự, bật **Long Paths** trong Group Policy: `Computer Configuration → Filesystem → Enable Win32 long paths`.</Warning>
-  </Accordion>
-
-  <Accordion icon="linux" title="Linux">
-    Auto installer chỉ hỗ trợ macOS/Windows. Linux dùng [Cài đặt đầy đủ](/installation/linux).
-  </Accordion>
-</AccordionGroup>
-
-## Bước 4 — Sau khi cài
-
-<Steps>
-  <Step title="Thả file vào raw_assets/">
-    Drop ảnh/video/audio vào một trong 3 folder:
-
-    - `raw_assets/images/`
-    - `raw_assets/videos/`
-    - `raw_assets/audio/`
-
-    Watcher debounce 1.5s rồi tự gọi Gemini analyzer + OpenAI embedding, lưu vào `.asset_index/index.db`.
-  </Step>
-
-  <Step title="Tìm asset">
-    **macOS**: double-click `setup/Search.command`
-    **Windows**: double-click `setup/Search.bat`
-
-    Gõ truy vấn tiếng Việt (ví dụ `phong cảnh núi`, `người đang nói`, `nhạc buồn`). Top 5 kết quả khớp ngữ nghĩa nhất sẽ hiện.
-  </Step>
-
-  <Step title="Kiểm tra trạng thái watcher">
-    **macOS**: `setup/Status.command`
-    **Windows**: `setup/Status.bat`
-
-    Output gồm `pid`, `processed_count`, `last_error`. Nếu `pid` rỗng → watcher chưa chạy, xem [Khắc phục sự cố](/troubleshooting).
-  </Step>
-
-  <Step title="Verify">
-    Drop 1 file ảnh test vào `raw_assets/images/`, đợi ~5 giây, chạy Search với từ khoá khớp nội dung ảnh. Phải trả về ≥ 1 kết quả. Nếu không → xem [Khắc phục sự cố](/troubleshooting).
-  </Step>
-</Steps>
-
-## Bước tiếp theo
+<Warning>
+  Đừng chọn riêng thư mục `docs/`, `skills/`, `setup/`, hoặc `raw_assets/`. Hãy chọn thư mục lớn bên ngoài, nơi có file `AGENTS.md`.
+</Warning>
 
 <Columns cols={2}>
-  <Card title="Cài đầy đủ cho full pipeline" icon="layer-group" href="/installation/macos">
-    Thêm Node.js cho Remotion render và AusyncLab cho voice TTS.
+  <Card title="Cursor" icon="code">
+    Vào **File -> Open Folder...** rồi chọn thư mục repo.
   </Card>
-  <Card title="Khám phá skills" icon="cubes" href="/skills/audio-deduplicate">
-    Mỗi skill đóng gói 1 bước pipeline.
+  <Card title="Antigravity" icon="rocket">
+    Mở repo như một project/workspace.
   </Card>
-  <Card title="Cấu trúc dự án" icon="folder-tree" href="/configuration/structure">
-    Hiểu các thư mục `skills/`, `jobs/`, `tools/`, `raw_assets/`.
+  <Card title="Claude" icon="code-branch">
+    Nếu bạn dùng Claude Code, hãy mở session trong thư mục repo. Nếu chưa biết cách mở, dùng prompt ở bước 3 để nhờ AI hướng dẫn.
   </Card>
-  <Card title="Nâng cao: Asset Index" icon="database" href="/asset-index/architecture">
-    CLI dev, idempotency, cross-platform notes.
+  <Card title="Codex" icon="terminal">
+    Nếu bạn dùng Codex, hãy mở session trong thư mục repo. Nếu chưa quen, dùng Cursor/Antigravity trước sẽ dễ hơn.
+  </Card>
+</Columns>
+
+Bạn mở đúng thư mục khi AI agent có thể thấy file `AGENTS.md`. File này là “bản hướng dẫn nội bộ” để agent biết repo có thể làm gì.
+
+## 3. Copy prompt đầu tiên
+
+Sau khi mở repo bằng AI agent, copy prompt này và gửi cho agent:
+
+```text
+Tôi là người mới, không rành terminal và không biết repo này cần cài gì.
+
+Hãy đọc AGENTS.md và docs/features.mdx trước.
+Sau đó giải thích thật đơn giản:
+1. Repo này làm được gì?
+2. Nếu tôi muốn dùng từng tính năng thì cần chuẩn bị gì?
+3. Máy tôi hiện đã sẵn sàng đến đâu?
+4. Tôi nên bắt đầu bằng tính năng nào?
+
+Đừng chạy lệnh cài đặt ngay.
+Nếu cần cài gì, hãy giải thích bằng ngôn ngữ dễ hiểu và hỏi tôi xác nhận trước.
+```
+
+Nếu agent trả lời quá kỹ thuật, gửi tiếp prompt này:
+
+```text
+Hãy giải thích lại cho người không rành công nghệ.
+Đừng dùng thuật ngữ nếu không cần.
+Nếu bắt buộc dùng thuật ngữ, hãy giải thích bằng một câu ngắn.
+```
+
+## 4. Hỏi repo có thể làm gì
+
+Bạn có thể copy từng prompt dưới đây, tuỳ việc bạn muốn làm.
+
+### Xem toàn bộ tính năng
+
+```text
+Hãy liệt kê các tính năng của repo này theo nhóm dễ hiểu:
+- tải video/ảnh/audio,
+- tìm kiếm asset,
+- tạo kịch bản,
+- tạo giọng đọc,
+- làm phụ đề,
+- dựng video,
+- render video,
+- upload/chia sẻ file.
+
+Với mỗi nhóm, hãy nói tôi cần chuẩn bị gì và có cần API key không.
+```
+
+### Kiểm tra máy cần cài gì
+
+```text
+Hãy kiểm tra máy của tôi đã dùng được tính năng nào trong repo này.
+
+Chia kết quả thành 3 nhóm:
+1. Dùng được ngay.
+2. Cần cài thêm nhưng dễ.
+3. Cần API key hoặc setup nâng cao.
+
+Đừng cài gì khi chưa hỏi tôi.
+```
+
+### Dùng Asset Index để tìm video/ảnh
+
+```text
+Tôi muốn tìm kiếm ảnh/video trong raw_assets bằng tiếng Việt.
+Hãy hướng dẫn tôi chuẩn bị tối thiểu để dùng Asset Index.
+Nếu cần chạy installer, hãy nói rõ installer làm gì rồi hỏi tôi xác nhận.
+```
+
+### Làm video từ file có sẵn
+
+```text
+Tôi đã có video/ảnh/audio muốn dùng trong raw_assets.
+Hãy hướng dẫn tôi làm một video short-form từ các file đó.
+Trước tiên hãy hỏi tôi vài câu đơn giản về chủ đề, phong cách, độ dài và mục tiêu video.
+```
+
+### Tạo giọng đọc tiếng Việt
+
+```text
+Tôi muốn tạo giọng đọc tiếng Việt.
+Hãy cho tôi biết repo có những cách nào: cách miễn phí/local và cách cần API key.
+Hãy đề xuất cách dễ nhất cho người mới.
+```
+
+### Render video hoàn chỉnh
+
+```text
+Tôi muốn render video hoàn chỉnh.
+Hãy kiểm tra giúp tôi cần chuẩn bị gì cho Remotion, Node.js, ffmpeg và các skill liên quan.
+Nếu thiếu gì, hãy hướng dẫn từng bước thật đơn giản.
+```
+
+## 5. Khi agent yêu cầu cài đặt
+
+Nếu agent nói cần cài thêm, bạn có thể hỏi lại:
+
+```text
+Trong các thứ đang thiếu, cái nào bắt buộc để dùng tính năng tôi muốn?
+Cái nào có thể để sau?
+Hãy chỉ hướng dẫn phần tối thiểu trước.
+```
+
+Nếu agent chuẩn bị chạy lệnh, hỏi:
+
+```text
+Lệnh này dùng để làm gì?
+Có thay đổi file nào trong máy tôi không?
+Nếu lỗi thì có khôi phục được không?
+Giải thích ngắn gọn rồi chờ tôi đồng ý.
+```
+
+## 6. Khi đã sẵn sàng làm video
+
+Prompt khởi động một job thực tế nên nói thẳng input bạn có và output bạn muốn:
+
+```text
+Tạo job mới.
+
+Sử dụng script sau để đọc với giọng phù hợp của AusyncLab:
+
+[Dán nội dung script vào đây]
+
+Đây là những video thô mà bạn có thể sẽ cần phân tích và chọn cảnh phù hợp để cắt và đưa vào video đầu ra:
+
+[Tải lên hoặc đính kèm video thô ở đây]
+
+Yêu cầu video:
+- Chọn các cảnh phù hợp nhất từ video thô.
+- Cắt và sắp xếp cảnh theo nội dung script.
+- Tạo giọng đọc bằng AusyncLab với voice phù hợp.
+- Phụ đề đơn giản.
+- Đọc đến từ nào thì highlight nền cho từ đó.
+- Nếu thiếu API key, file đầu vào, hoặc công cụ render, hãy báo tôi biết trước khi làm tiếp.
+```
+
+Nếu app AI không hỗ trợ tải video trực tiếp vào chat, hãy copy video vào thư mục `raw_assets/`, rồi nói với agent:
+
+```text
+Tôi đã đặt video thô trong raw_assets. Hãy phân tích các video đó và chọn cảnh phù hợp cho job này.
+```
+
+## Nên đọc gì tiếp?
+
+<Columns cols={2}>
+  <Card title="Tính năng" icon="list-checks" href="/features">
+    Xem repo có thể làm gì, chia theo nhóm dễ hiểu.
+  </Card>
+  <Card title="Skills" icon="cubes" href="/skills">
+    Xem từng skill khi bạn đã muốn hiểu sâu hơn.
+  </Card>
+  <Card title="Cấu hình API key" icon="key" href="/configuration/env">
+    Xem các API key thường dùng khi agent báo cần thêm.
+  </Card>
+  <Card title="Khắc phục sự cố" icon="wrench" href="/troubleshooting">
+    Xem lỗi thường gặp khi cài đặt hoặc render.
   </Card>
 </Columns>

@@ -1,71 +1,146 @@
 ---
 title: "create-edit-image-gpt-image-2"
-description: "Tạo hoặc edit ảnh qua KIE.AI GPT Image 2 từ text và ảnh tham chiếu"
+description: "Tạo hoặc chỉnh ảnh với KIE GPT Image 2 (text-to-image / image-to-image), poll task và tải kết quả"
 icon: "image-plus"
 ---
 
 <Info>
-  **Skill ID**: `$create-edit-image-gpt-image-2` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/create-edit-image-gpt-image-2/SKILL.md) · [KIE.AI docs](https://docs.kie.ai/market/gpt/gpt-image-2-image-to-image)
+  **Skill ID**: `$create-edit-image-gpt-image-2` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/create-edit-image-gpt-image-2/SKILL.md) · [KIE GPT Image 2](https://docs.kie.ai/market/gpt/gpt-image-2-text-to-image)
 </Info>
 
-## Mục đích
+## Rules
 
-Tạo ảnh mới từ prompt hoặc edit ảnh có sẵn bằng GPT Image 2 qua KIE Market API. Skill tự chọn model:
+- Use this skill for KIE.AI GPT Image 2 image creation and editing.
+- Read `.env` from the repo root before running scripts. Require `KIE_API_KEY`; never print the key.
+- If reference images are local files, upload them to KIE file storage first. Uploaded files are temporary and expire after 3 days.
+- Generated result URLs are temporary; download finished images into the job folder immediately.
+- Do not use `callBackUrl` in this repo. The local environment has no public callback receiver, so every task must be checked with a polling loop through `recordInfo`.
+- For Vietnamese user-facing output, write Vietnamese with accents. Keep API fields, model IDs, paths, and enum values unchanged.
 
-- Không có ảnh tham chiếu → `gpt-image-2-text-to-image`
-- Có `--input-images` → `gpt-image-2-image-to-image`
+## Models
 
-Ảnh output được download vào `jobs/<id>/input/raw_assets/images/gpt_image_2/` để watcher asset-index pickup như asset thật.
-
-## Khi nào được invoke
-
-- Cần tạo ảnh AI từ text nhưng muốn dùng KIE/GPT Image 2 thay vì fal.ai.
-- Cần edit ảnh sản phẩm, nhân vật, background, layout, thumbnail, poster.
-- Có 1+ ảnh tham chiếu và muốn agent upload ảnh local lên KIE storage tạm rồi submit task.
-
-## Cách sử dụng
-
-Cần `KIE_API_KEY` trong `.env` ở repo-root. Môi trường local **không dùng callback URL**; script luôn loop trạng thái qua `GET /api/v1/jobs/recordInfo`.
+KIE Market endpoints:
 
 ```text
-$create-edit-image-gpt-image-2 — edit ảnh sản phẩm này, giữ nguyên label và shape,
-đổi background thành bếp sáng hiện đại
+POST https://api.kie.ai/api/v1/jobs/createTask
+GET  https://api.kie.ai/api/v1/jobs/recordInfo?taskId=<taskId>
+Authorization: Bearer <KIE_API_KEY>
 ```
 
-Hoặc gọi script trực tiếp:
+Use model by mode:
+
+```text
+gpt-image-2-text-to-image       # prompt only
+gpt-image-2-image-to-image      # prompt + input_urls
+```
+
+Text-to-image body:
+
+```json
+{
+  "model": "gpt-image-2-text-to-image",
+  "input": {
+    "prompt": "A cinematic night city poster with neon reflections on a rainy street.",
+    "aspect_ratio": "auto"
+  }
+}
+```
+
+Image-to-image/edit body:
+
+```json
+{
+  "model": "gpt-image-2-image-to-image",
+  "input": {
+    "prompt": "Turn this product photo into a premium studio ad, preserve product shape and labels.",
+    "input_urls": ["https://..."],
+    "aspect_ratio": "auto"
+  }
+}
+```
+
+## Mode Selection
+
+- No `--input-images`: create from text using `gpt-image-2-text-to-image`.
+- With `--input-images`: edit or create from references using `gpt-image-2-image-to-image`.
+- Use clear edit instructions when preserving identity, product labels, proportions, or composition matters.
+- Keep `aspect_ratio` as `auto` unless the user asks for a specific output ratio.
+
+## Script
+
+Create an image from text:
 
 ```bash
-# Text-to-image
 python skills/create-edit-image-gpt-image-2/scripts/create_edit_image_gpt_image_2.py generate \
   --env-file .env \
-  --prompt "A premium skincare product photo on a clean glass pedestal, soft studio lighting" \
+  --prompt "A premium skincare product photo on a clean glass pedestal, soft studio lighting, high-end cosmetic campaign" \
   --aspect-ratio auto \
   --output-dir jobs/<job_id>/input/raw_assets/images/gpt_image_2
+```
 
-# Image-to-image / edit
+Edit an image with one or more references:
+
+```bash
 python skills/create-edit-image-gpt-image-2/scripts/create_edit_image_gpt_image_2.py generate \
   --env-file .env \
-  --prompt "Keep the product exactly the same, replace the background with a bright modern kitchen" \
+  --prompt "Keep the product exactly the same, replace the background with a bright modern kitchen, natural morning light" \
   --input-images jobs/<job_id>/input/raw_assets/images/product.jpg \
+  --aspect-ratio auto \
   --output-dir jobs/<job_id>/input/raw_assets/images/gpt_image_2
 ```
 
-## Output
-
-```text
-jobs/<job_id>/input/raw_assets/images/gpt_image_2/gpt_image_2_task_<taskId>.json
-jobs/<job_id>/input/raw_assets/images/gpt_image_2/gpt_image_2_result_<taskId>_<n>.<ext>
-```
-
-Sau khi có ảnh mới, tiếp tục pipeline:
+Use multiple references:
 
 ```bash
-.venv/bin/python -m tools.asset_index.exporter jobs/<job_id>/input/raw_assets/ \
-  --output jobs/<job_id>/source/asset_semantics.toml
+python skills/create-edit-image-gpt-image-2/scripts/create_edit_image_gpt_image_2.py generate \
+  --env-file .env \
+  --prompt "Combine the person from image 1 with the outfit style from image 2, photorealistic editorial portrait" \
+  --input-images jobs/<job_id>/input/reference/person.jpg,jobs/<job_id>/input/reference/outfit.jpg \
+  --output-dir jobs/<job_id>/input/raw_assets/images/gpt_image_2
 ```
 
-## Prompt tốt
+Check a task later:
 
-- Product: ghi rõ phần phải giữ nguyên: logo, label text, shape, màu, chất liệu.
-- Người thật/nhân vật: ghi rõ giữ identity, pose, outfit, expression hay chỉ dùng làm style reference.
-- Ads/thumbnails: nêu output use case như "TikTok vertical ad", "e-commerce hero image", "YouTube thumbnail".
+```bash
+python skills/create-edit-image-gpt-image-2/scripts/create_edit_image_gpt_image_2.py status \
+  --env-file .env \
+  --task-id task_gptimage_1765180586443 \
+  --output-dir jobs/<job_id>/input/raw_assets/images/gpt_image_2 \
+  --download
+```
+
+## Outputs
+
+The script writes:
+
+```text
+<output-dir>/gpt_image_2_task_<taskId>.json
+<output-dir>/gpt_image_2_result_<taskId>_<n>.<ext>
+```
+
+Use generated images as raw assets. After download, continue with the usual pipeline:
+
+```bash
+.venv/bin/python -m tools.asset_index.exporter jobs/<job_id>/input/raw_assets/ --output jobs/<job_id>/source/asset_semantics.toml
+```
+
+## Prompt Guidance
+
+- For product edits, explicitly say what must stay unchanged: shape, label text, color, logo, packaging, material.
+- For people, explicitly say whether to preserve identity, expression, pose, clothing, or only use the image as loose style reference.
+- For ads, include output use: "TikTok vertical ad", "e-commerce hero image", "thumbnail", "poster".
+- Avoid vague prompts like "make it better"; specify background, lighting, camera angle, style, and preservation constraints.
+
+## Troubleshooting
+
+- `401`: missing or invalid `KIE_API_KEY`.
+- `400` / `422`: invalid body fields or unsupported image URL; upload local images again if temporary URLs expired.
+- `fail` state: read `failCode` and `failMsg` from the saved task JSON.
+- No result file downloaded: inspect `resultJson`; if URLs are nested differently, download the returned result URL manually and update the script if this becomes a recurring shape.
+
+## Sources
+
+- Image-to-image docs: https://docs.kie.ai/market/gpt/gpt-image-2-image-to-image
+- Text-to-image docs: https://docs.kie.ai/market/gpt/gpt-image-2-text-to-image
+- Task status: https://docs.kie.ai/market/common/get-task-detail
+- File upload: https://docs.kie.ai/file-upload-api/quickstart

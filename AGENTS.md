@@ -60,12 +60,11 @@ Project-specific terms — keep usage consistent:
 Active navigation lives in [`docs.json`](docs.json). Current top-level groups:
 
 1. Bắt đầu (Getting started) — `index`, `quickstart`.
-2. Cài đặt đầy đủ — `installation/{macos,windows,linux}`.
-3. Cấu hình — `configuration/{env,structure}`.
-4. Sử dụng — `usage/{index,search,status,verify}`.
-5. Skills — port từ `skills/<name>/SKILL.md`.
-6. Asset Index nâng cao — `asset-index/{architecture,cli,files,idempotency,cross-platform,extending}`.
-7. Vận hành — `troubleshooting`, `maintenance`.
-8. Cộng đồng — `contributing`.
+2. Cấu hình — `configuration/{env,structure}`.
+3. Sử dụng — `usage/{index,search,status,verify}`.
+4. Skills — port từ `skills/<name>/SKILL.md`.
+5. Asset Index nâng cao — `asset-index/{architecture,cli,files,idempotency,cross-platform,extending}`.
+6. Vận hành — `troubleshooting`, `maintenance`.
+7. Cộng đồng — `contributing`.
 
 When adding a new page, update `docs.json` AND link it from at least one related page (cross-link).

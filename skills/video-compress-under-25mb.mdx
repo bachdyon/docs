@@ -1,6 +1,6 @@
 ---
 title: "video-compress-under-25mb"
-description: "Nén MP4/MOV local để dưới ~25MB cho upload API, inbox hoặc giới hạn file nhỏ"
+description: "Nén MP4/MOV H.264/AAC 2-pass để vừa giới hạn ~25MB, giữ resolution/fps khi có thể"
 icon: "file-zipper"
 ---
 
@@ -8,43 +8,27 @@ icon: "file-zipper"
   **Skill ID**: `$video-compress-under-25mb` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video-compress-under-25mb/SKILL.md)
 </Info>
 
-## Mục đích
+## Rules
 
-Giảm kích thước file video local (MP4/MOV) để đạt ngưỡng upload (thường **≤ 25 MB**), phù hợp trước khi gọi `$zernio-upload-direct`, đính kèm WhatsApp/Messenger hoặc API có giới hạn dung lượng.
+- Use the bundled script before hand-writing ffmpeg commands.
+- Preserve original resolution and frame rate by default; reduce bitrate first.
+- Default target is 24 MiB to leave room below a 25 MiB API limit.
+- Use H.264/AAC MP4 by default for maximum compatibility.
+- Use 2-pass H.264 when targeting an exact size; it is more reliable than CRF for file-size limits.
+- Do not overwrite the input unless the user explicitly asks.
+- After compression, verify actual output size, codec, resolution, duration, and bitrate.
+- If the file cannot fit acceptably under the target at original resolution, tell the user and offer a lower resolution pass.
 
-Skill ưu tiên:
+## Script
 
-- Giữ **độ phân giải** và **fps** gốc; giảm **bitrate** trước.
-- Mặc định **H.264 + AAC trong MP4** để tương thích rộng.
-- Hai lần pass H.264 khi cần khớp kích thước gần như chính xác.
-
-## Khi nào invoke
-
-- Video lớn hơn giới hạn upload (vd. Zernio **25 MB**).
-- User yêu cầu nén video cho gửi tin nhắn / API / nền tảng giới hạn file nhỏ.
-- Cần bản xem thử nhỏ kèm JSON metadata và ảnh preview.
-
-## Ràng buộc quan trọng
-
-- **Không** ghi đè file đầu vào trừ khi user yêu cầu rõ ràng.
-- Mặc định target ~**24 MiB** để tránh bị từ chối sát ngưỡng API.
-- Nén mất dữ liệu — mục tiêu là chất lượng chấp nhận được trên mobile/social.
-- Sau khi chạy, kiểm tra kích thước thực, codec, độ phân giải, duration và bitrate trong file JSON kèm theo.
-
-## Cách dùng nhanh
-
-```text
-$video-compress-under-25mb — nén video xuống dưới ngưỡng MB cho upload
-```
-
-Nén mặc định (output cạnh file gốc, tên `_under25mb_h264`):
+Compress to under 25 MiB:
 
 ```bash
 .venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
   input.mp4
 ```
 
-Ghi ra cạnh output của job:
+Write beside a specific job output:
 
 ```bash
 .venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
@@ -52,7 +36,7 @@ Ghi ra cạnh output của job:
   --output jobs/<job_id>/output/final_video_under25mb_h264.mp4
 ```
 
-Tuỳ chỉnh ngưỡng và âm thanh:
+Use a different limit or target:
 
 ```bash
 .venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
@@ -62,7 +46,7 @@ Tuỳ chỉnh ngưỡng và âm thanh:
   --audio-bitrate-kbps 96
 ```
 
-Tuỳ chọn **HEVC** (chất lượng tốt hơn cùng dung lượng, tương thích thiết bị hẹp hơn):
+Optional HEVC pass for higher quality at the same size but lower compatibility:
 
 ```bash
 .venv/bin/python skills/video-compress-under-25mb/scripts/compress_video_under_size.py \
@@ -70,22 +54,27 @@ Tuỳ chọn **HEVC** (chất lượng tốt hơn cùng dung lượng, tương t
   --codec h265
 ```
 
-## Output
+## Output files
 
-Script tạo (theo stem đầu vào, trừ khi chỉ định `--output`):
+The script writes:
 
-- `<stem>_under25mb_h264.mp4` — file đã nén
-- `<stem>_under25mb_h264.json` — metadata, cấu hình ffmpeg, bitrate mục tiêu, cờ `under_max_size`
-- `<stem>_under25mb_h264_preview.jpg` — preview
+```text
+<input_stem>_under25mb_h264.mp4
+<input_stem>_under25mb_h264.json
+<input_stem>_under25mb_h264_preview.jpg
+```
 
-## Workflow gợi ý
+The JSON file contains input/output metadata, ffmpeg settings, computed target bitrate, and whether the output is under the requested max size.
 
-1. Chạy script với path video gốc.
-2. Đọc JSON; chỉ upload khi `under_max_size` đúng theo yêu cầu.
-3. Với `$zernio-upload-direct`, upload sau khi đã xác nhận dung lượng.
+## Workflow
 
-## Gợi ý tham chiếu
+1. Run the script with the original video path.
+2. Review the JSON summary and `under_max_size` field.
+3. Show the output path, size, and preview image to the user before upload when the user asks to approve quality.
+4. If using the result with `$zernio-upload-direct`, upload only after `under_max_size` is true.
 
-- 25 MiB ≈ `26_214_400` byte.
-- Video dọc ~1080p ~60s dưới 25 MiB thường cần tổng bitrate khoảng **3,0–3,3 Mbps**.
-- Nếu không đạt chất lượng chấp nhận được ở độ phân giải gốc, báo user và đề xuất pass giảm resolution.
+## Notes
+
+- 25 MiB equals `26,214,400` bytes. The script defaults to 24 MiB target to avoid edge-case API rejection.
+- A 60-second vertical 1080p video under 25 MiB usually needs about `3.0-3.3 Mbps` total bitrate.
+- This is not lossless compression; the practical goal is no obvious quality loss at mobile/social viewing size.

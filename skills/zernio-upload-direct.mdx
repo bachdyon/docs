@@ -1,67 +1,38 @@
 ---
 title: "zernio-upload-direct"
-description: "Upload attachment local lên Zernio để lấy URL tạm dùng cho inbox message và media payload"
+description: "POST /v1/media/upload-direct Zernio — Bearer auth, file tối đa 25MB, URL tạm ~7 ngày"
 icon: "cloud-arrow-up"
 ---
 
 <Info>
-  **Skill ID**: `$zernio-upload-direct` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/zernio-upload-direct/SKILL.md) · Provider API: [Zernio](https://docs.zernio.com/messages/upload-media-direct)
+  **Skill ID**: `$zernio-upload-direct` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/zernio-upload-direct/SKILL.md) · [Zernio docs](https://docs.zernio.com/messages/upload-media-direct)
 </Info>
 
-## Mục đích
+## Rules
 
-Upload ảnh, video, audio hoặc file local lên Zernio qua `POST /v1/media/upload-direct` để lấy public URL tạm thời cho inbox message, Messenger, WhatsApp, Telegram hoặc payload media khác.
+- Use this skill for Zernio `POST /v1/media/upload-direct`, not the end-user upload-token flow.
+- Prefer the bundled Python script over hand-written curl or ad hoc multipart code.
+- Read `ZERNIO_API_KEY` from the shell environment first, then from repo-root `.env` when `--env-file .env` is passed. Never print or write the key.
+- Reject files larger than 25 MB before calling the API.
+- Treat returned URLs as temporary: Zernio stores files for 7 days.
+- Use the returned `url` as `attachment_url` in the Zernio MCP `messages_send_inbox_message` tool, or as `attachmentUrl` in direct API payloads.
 
-## Khi nào invoke
-
-- Bạn cần gửi attachment qua Zernio inbox message.
-- Bạn có file local và cần URL public nhanh, không qua browser upload token.
-- Bạn cần chuẩn bị `attachment_url` / `attachmentUrl` cho direct API payload.
-
-## Ràng buộc quan trọng
-
-- Bắt buộc có `ZERNIO_API_KEY` trong môi trường hoặc `.env`.
-- Auth dùng `Authorization: Bearer <ZERNIO_API_KEY>`.
-- Không in, log hoặc commit API key.
-- File upload phải nhỏ hơn hoặc bằng 25 MB.
-- URL trả về là tạm thời; Zernio lưu file trong 7 ngày.
-- Nếu video vượt 25 MB, dùng `$video-compress-under-25mb` trước khi upload.
-
-## Cách dùng nhanh
+## API contract
 
 ```text
-$zernio-upload-direct — upload file local lên Zernio và trả về attachment URL
+POST https://zernio.com/api/v1/media/upload-direct
+Authorization: Bearer <ZERNIO_API_KEY>
+Content-Type: multipart/form-data
 ```
 
-Upload một file:
+Multipart fields:
 
-```bash
-.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
-  --env-file .env \
-  jobs/<job_id>/input/raw_assets/images/photo.jpg
+```text
+file          binary, required, max 25 MB
+contentType   string, optional MIME override such as image/jpeg
 ```
 
-Upload và lưu response:
-
-```bash
-.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
-  --env-file .env \
-  --output jobs/<job_id>/source/zernio_upload.json \
-  jobs/<job_id>/output/final_video_under_25mb.mp4
-```
-
-Override MIME type khi autodetect sai:
-
-```bash
-.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
-  --env-file .env \
-  --content-type image/jpeg \
-  path/to/photo.bin
-```
-
-## Output
-
-Response thành công có các field chính:
+Successful response:
 
 ```json
 {
@@ -72,14 +43,44 @@ Response thành công có các field chính:
 }
 ```
 
-Dùng `url` trả về cho:
+## Script
 
-- `attachment_url` khi gọi Zernio MCP inbox message.
-- `attachmentUrl` khi gọi direct API payload.
+Upload one file and print compact JSON. In this repo, prefer `.venv/bin/python` so `certifi` is available for HTTPS verification:
 
-## Troubleshooting
+```bash
+.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
+  --env-file .env \
+  path/to/file.jpg
+```
 
-- `Missing ZERNIO_API_KEY`: thêm key vào `.env` hoặc export trong shell.
-- File lớn hơn 25 MB: nén bằng `$video-compress-under-25mb` hoặc chọn file nhỏ hơn.
-- `401`: API key thiếu, sai, hết hạn hoặc chưa load vào process hiện tại.
-- `CERTIFICATE_VERIFY_FAILED`: chạy bằng `.venv/bin/python`; script tự dùng `certifi` nếu có.
+Upload and save the response:
+
+```bash
+.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
+  --env-file .env \
+  --output jobs/<job_id>/source/zernio_upload.json \
+  jobs/<job_id>/input/raw_assets/images/photo.jpg
+```
+
+Override MIME type when autodetection is wrong:
+
+```bash
+.venv/bin/python skills/zernio-upload-direct/scripts/upload_media_direct.py \
+  --env-file .env \
+  --content-type image/jpeg \
+  path/to/photo.bin
+```
+
+## Workflow
+
+1. Confirm the local file exists and is below 25 MB.
+2. Run the script with `--env-file .env` unless the user explicitly wants another env source.
+3. Capture the returned `url`.
+4. When sending an inbox message through MCP, pass the URL as `attachment_url` and set `attachment_type` if the platform needs it.
+5. If the API returns `401`, tell the user the Zernio API key is missing, invalid, or not loaded into the current process.
+6. If system Python reports `CERTIFICATE_VERIFY_FAILED`, run with `.venv/bin/python`; the script uses `certifi` automatically when installed.
+
+## Sources
+
+- Zernio Upload media file: https://docs.zernio.com/messages/upload-media-direct
+- API base URL: `https://zernio.com/api/v1`

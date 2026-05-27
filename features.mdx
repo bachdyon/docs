@@ -82,8 +82,8 @@ VAS đóng gói **28 project skill** (trong `skills/<name>/SKILL.md`) + **1 skil
   <Card title="video-quality-auditor" icon="shield-check" href="/skills/video-quality-auditor">
     Audit chất lượng render và áp batch fix theo rule.
   </Card>
-  <Card title="remotion-best-practices" icon="cubes-stacked" href="/installation/macos#cài-remotion-skill-chỉ-khi-sẽ-render-video-remotion-ra-mp4">
-    Skill bên thứ ba — best practice Remotion; cài bằng `bash scripts/ensure-remotion-skill.sh --install`.
+  <Card title="remotion-best-practices" icon="cubes-stacked" href="/quickstart">
+    Khi cần render Remotion, hãy yêu cầu agent kiểm tra skill chính thức và hướng dẫn phần còn thiếu.
   </Card>
 </Columns>
 
@@ -115,20 +115,20 @@ VAS đóng gói **28 project skill** (trong `skills/<name>/SKILL.md`) + **1 skil
   </Card>
 </Columns>
 
-## Tích hợp 3 IDE/agent
+## Tích hợp IDE/agent
 
 <Columns cols={2}>
-  <Card title="Cursor" icon="code" href="/quickstart#bước-2--mở-folder--cài-skill-bên-thứ-ba">
-    Mở folder bằng `cursor .` — Cursor tự pickup `AGENTS.md` làm workspace rule. 28 project skills sẵn sàng cho mọi chat.
+  <Card title="Cursor" icon="code" href="/quickstart#2-mở-thư-mục-bằng-ai-agent">
+    Mở folder repo trong Cursor, rồi copy prompt đầu tiên trong trang Bắt đầu nhanh.
   </Card>
-  <Card title="Codex" icon="terminal" href="/quickstart#bước-2--mở-folder--cài-skill-bên-thứ-ba">
-    `cd` vào folder rồi gõ `codex` — Codex CLI tự đọc `AGENTS.md` + danh sách skill.
+  <Card title="Codex" icon="terminal" href="/quickstart#2-mở-thư-mục-bằng-ai-agent">
+    Nếu bạn đã dùng Codex, hãy mở session trong thư mục repo để agent thấy `AGENTS.md`.
   </Card>
-  <Card title="Claude Code" icon="code-branch" href="/quickstart#bước-2--mở-folder--cài-skill-bên-thứ-ba">
-    `claude` trong folder → discover `.claude/skills/*/SKILL.md` (đã symlink). Gõ `/skills` để verify.
+  <Card title="Claude Code" icon="code-branch" href="/quickstart#2-mở-thư-mục-bằng-ai-agent">
+    Nếu bạn đã dùng Claude Code, hãy mở session trong thư mục repo để agent thấy hướng dẫn và skills.
   </Card>
-  <Card title="Skill bên thứ ba" icon="cubes-stacked" href="/installation/macos#cài-remotion-skill-chỉ-khi-sẽ-render-video-remotion-ra-mp4">
-    Cài thêm skill ngoài (vd. `remotion-best-practices`) bằng 1 lệnh `bash scripts/ensure-remotion-skill.sh --install` — dùng được cho cả 3 IDE.
+  <Card title="Antigravity" icon="rocket" href="/quickstart#2-mở-thư-mục-bằng-ai-agent">
+    Mở repo làm workspace/project để agent đọc được hướng dẫn và tài liệu đi kèm.
   </Card>
 </Columns>
 
@@ -136,7 +136,7 @@ VAS đóng gói **28 project skill** (trong `skills/<name>/SKILL.md`) + **1 skil
 
 <Columns cols={2}>
   <Card title="Auto installer" icon="rocket" href="/quickstart">
-    macOS / Windows: double-click `setup/Install.command` hoặc `Install.bat` — installer tự kiểm tra Python, ffmpeg, mở browser lấy API key, đăng ký watcher chạy nền. Xong trong < 5 phút.
+    Người mới có thể yêu cầu agent kiểm tra máy và chạy installer phù hợp, thay vì tự đọc từng bước cài đặt.
   </Card>
   <Card title="Watcher chạy 24/7" icon="rotate" href="/usage/status">
     Đăng ký với launchd (mac) / Task Scheduler (win) → tự bật cùng máy, tự restart khi crash. Đọc [`Status.command`](usage/status) để xem PID + lỗi gần nhất.
@@ -144,7 +144,7 @@ VAS đóng gói **28 project skill** (trong `skills/<name>/SKILL.md`) + **1 skil
   <Card title="Idempotent" icon="recycle" href="/asset-index/idempotency">
     Cùng 1 file index 100 lần chỉ tốn quota AI **đúng 1 lần**. Watcher restart, copy file qua nhiều folder, scan lại toàn bộ — đều an toàn, không ngốn key.
   </Card>
-  <Card title="Đa nền tảng" icon="globe" href="/installation/macos">
+  <Card title="Đa nền tảng" icon="globe" href="/asset-index/cross-platform">
     macOS (FSEvents), Windows (ReadDirectoryChangesW), Linux (inotify) — đều hoạt động. Có fallback `--polling` cho NFS / sandbox.
   </Card>
 </Columns>
@@ -156,9 +156,9 @@ VAS đóng gói **28 project skill** (trong `skills/<name>/SKILL.md`) + **1 skil
     Xem video minh họa từng loại format (ví dụ video tin tức) khi skills phối hợp.
   </Card>
   <Card title="Bắt đầu nhanh" icon="rocket" href="/quickstart">
-    Auto installer < 5 phút cho Mac/Win.
+    Dành cho người mới: tải repo, mở bằng app AI, rồi copy prompt đầu tiên.
   </Card>
-  <Card title="Cài đặt đầy đủ" icon="screwdriver-wrench" href="/installation/macos">
-    Cài tay 3 OS để dùng toàn bộ pipeline (Remotion render, voice TTS).
+  <Card title="Cấu hình API key" icon="key" href="/configuration/env">
+    Khi agent báo thiếu API key, xem ý nghĩa từng key và cách kiểm tra.
   </Card>
 </Columns>
