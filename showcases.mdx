@@ -4,8 +4,6 @@ description: "Video minh họa các định dạng pipeline VAS có thể dựng
 icon: "clapperboard"
 ---
 
-Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, skills) rồi hàng **nhiều player** cạnh nhau — thêm URL từng ô khi có thêm bản render / cut / job trong [kho demo công khai trên GitHub](https://github.com/bachdyon/vas-showcases).
-
 <a
   href="https://www.facebook.com/bachdyon/"
   target="_blank"
@@ -43,26 +41,6 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
     Nhắn qua Facebook
   </div>
 </a>
-
-## Thêm job mới vào showcases
-
-Dùng [`$add-job-to-showcases`](/skills/add-job-to-showcases) khi bạn muốn đưa một job đã render xong từ `jobs/<job_id>/` sang kho demo công khai `showcases/<job_id>/`.
-
-<Warning>
-  Showcase public chỉ giữ `output/`. Không copy `input/`, `source/`, `logs/`, `job.toml`, `remotion/`, hoặc artifact nội bộ khác vào `showcases/`.
-</Warning>
-
-<Steps>
-  <Step title="Copy output sang showcases">
-    Tạo `showcases/<job_id>/`, rồi copy riêng `jobs/<job_id>/output/` sang `showcases/<job_id>/output/`.
-  </Step>
-  <Step title="Verify bản public">
-    Chạy `find showcases/<job_id> -mindepth 1 -maxdepth 1 ! -name output -print` để đảm bảo không còn thành phần nào ngoài `output/`.
-  </Step>
-  <Step title="Thêm video vào trang này">
-    Gắn player vào đúng nhóm định dạng, dùng URL `https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/<job_id>/output/final_video.mp4`.
-  </Step>
-</Steps>
 
 ## Video tin tức — News intro + clip gốc
 
