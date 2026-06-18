@@ -49,15 +49,15 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
 Dùng [`$add-job-to-showcases`](/skills/add-job-to-showcases) khi bạn muốn đưa một job đã render xong từ `jobs/<job_id>/` sang kho demo công khai `showcases/<job_id>/`.
 
 <Warning>
-  Không copy `remotion/` vào `showcases/`. Showcase chỉ giữ artifact public để xem và truy vết pipeline: `job.toml`, `input/`, `source/`, `logs/`, `output/`, đặc biệt là `output/final_video.mp4`.
+  Showcase public chỉ giữ `output/`. Không copy `input/`, `source/`, `logs/`, `job.toml`, `remotion/`, hoặc artifact nội bộ khác vào `showcases/`.
 </Warning>
 
 <Steps>
-  <Step title="Mirror job sang showcases">
-    Copy `jobs/<job_id>/` sang `showcases/<job_id>/`, loại `remotion/`, `node_modules`, `.git`, `.DS_Store`, `.remotion`, `out`, `build`, và `dist`.
+  <Step title="Copy output sang showcases">
+    Tạo `showcases/<job_id>/`, rồi copy riêng `jobs/<job_id>/output/` sang `showcases/<job_id>/output/`.
   </Step>
   <Step title="Verify bản public">
-    Chạy `find showcases/<job_id> -type d -name remotion -print` và `diff -qr --exclude remotion --exclude node_modules --exclude .git --exclude .DS_Store jobs/<job_id> showcases/<job_id>`.
+    Chạy `find showcases/<job_id> -mindepth 1 -maxdepth 1 ! -name output -print` để đảm bảo không còn thành phần nào ngoài `output/`.
   </Step>
   <Step title="Thêm video vào trang này">
     Gắn player vào đúng nhóm định dạng, dùng URL `https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/<job_id>/output/final_video.mp4`.
