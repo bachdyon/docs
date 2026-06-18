@@ -1,0 +1,71 @@
+---
+title: "png-to-svg-convertio"
+description: "Convert PNG local sang SVG qua Convertio API bằng script kèm repo"
+icon: "file-image"
+---
+
+<Info>
+  **Skill ID**: `$png-to-svg-convertio` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/png-to-svg-convertio/SKILL.md) · [Convertio API docs](https://developers.convertio.co/vn/api/docs/)
+</Info>
+
+## Mục đích
+
+Chuyển ảnh PNG local thành file SVG khi pipeline cần asset vector cho logo, icon, overlay, template hoặc thiết kế cần chỉnh tiếp bằng SVG.
+
+<Warning>
+  PNG-to-SVG không đảm bảo tạo path vector thật. Với ảnh phức tạp, kết quả có thể là SVG wrapper chứa raster image. Khi cần chỉnh từng path, hãy inspect SVG sau khi convert.
+</Warning>
+
+## Rules
+
+- Dùng script kèm repo trước khi viết API call thủ công.
+- Chỉ gửi file `.png` trừ khi user yêu cầu rõ workflow khác.
+- Đọc `CONVERTIO_API_KEY` từ shell environment, hoặc từ repo-root `.env` khi dùng `--env-file .env`.
+- Không in, log hoặc commit API key.
+- Ưu tiên tải kết quả qua Convertio `/dl/base64`; output URL có thể bị ràng buộc IP và không nên xem là public URL.
+- Xóa remote conversion sau khi download thành công, trừ khi user muốn giữ để debug.
+
+## Script
+
+Convert một PNG và ghi SVG cạnh file gốc:
+
+```bash
+.venv/bin/python skills/png-to-svg-convertio/scripts/convert_png_to_svg.py \
+  --env-file .env \
+  path/to/image.png
+```
+
+Chọn output path cụ thể:
+
+```bash
+.venv/bin/python skills/png-to-svg-convertio/scripts/convert_png_to_svg.py \
+  --env-file .env \
+  --output jobs/<job_id>/input/raw_assets/images/logo.svg \
+  jobs/<job_id>/input/raw_assets/images/logo.png
+```
+
+Ghi metadata chuyển đổi:
+
+```bash
+.venv/bin/python skills/png-to-svg-convertio/scripts/convert_png_to_svg.py \
+  --env-file .env \
+  --output source/logo.svg \
+  --metadata-output source/logo_convertio.json \
+  raw_assets/images/logo.png
+```
+
+## Workflow
+
+1. Confirm input tồn tại và có extension `.png`.
+2. Chạy script với `--env-file .env` trừ khi user chỉ định nguồn env khác.
+3. Dùng `--output` nếu SVG cần nằm trong asset folder cụ thể.
+4. Inspect SVG nếu downstream cần path vector edit được.
+5. Trả lại output path và conversion ID từ JSON compact.
+
+## Troubleshooting
+
+- `Missing CONVERTIO_API_KEY`: export key hoặc thêm vào `.env`.
+- `401`: API key sai hoặc chưa load.
+- `422`: Convertio không đọc hoặc không convert được PNG; kiểm tra file hỏng, transparency, kích thước.
+- Timeout: tăng `--timeout-seconds` hoặc xem metadata nếu có `--metadata-output`.
+

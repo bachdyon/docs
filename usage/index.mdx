@@ -55,7 +55,7 @@ jobs/<id>/source/vds_analysis.toml  # raw data Gemini trả
 
 **Khi nào dùng**: bạn ghi narration thô (đôi khi đọc lại 2–3 lần một câu để chọn take tốt nhất) và muốn loại bản dư trước khi đưa vào pipeline.
 
-**Prerequisites**: `OPENAI_API_KEY` trong `.env` (script `$word-timestamps-extractor` hiện dùng Whisper/OpenAI transcription để lấy timestamp cấp từ).
+**Prerequisites**: `faster-whisper` trong Python environment đang chạy. `OPENAI_API_KEY` trong `.env` chỉ cần nếu chạy `$word-timestamps-extractor` với `--backend openai`.
 
 **Prompt copy-paste**:
 
@@ -68,7 +68,7 @@ $audio-deduplicate — làm sạch /path/to/raw.wav (hoặc raw.mp3).
 
 **Bước agent tự chạy**:
 
-1. `$word-timestamps-extractor` trích xuất transcript có timestamp cấp câu/từ từ file audio. Script hiện chạy `whisper-1` (hoặc API transcription tương thích) → TOML word-level timestamps.
+1. `$word-timestamps-extractor` trích xuất transcript có timestamp cấp câu/từ từ file audio. Script mặc định chạy local `faster-whisper` → TOML word-level timestamps.
 2. `$audio-deduplicate` đọc TOML, detect cụm lặp consecutive (cùng từ/2-gram/3-gram trong window 5s), lập danh sách timeline cần cắt.
 3. Dùng `ffmpeg` cắt và ghép → file audio sạch.
 4. Ghi log diff (đoạn đã xóa, độ dài tiết kiệm).
@@ -237,7 +237,7 @@ Pipeline đặc biệt:
 **Bước agent tự chạy** (chi tiết bước 3):
 
 ```bash
-python skills/fal_image_generator/scripts/fal_image_generator.py generate \
+python skills/fal-image-generator/scripts/fal_image_generator.py generate \
   --env-file .env \
   --from-creative-plan jobs/<id>/source/creative_plan.toml \
   --reference-images jobs/<id>/input/reference/character_main.jpg \

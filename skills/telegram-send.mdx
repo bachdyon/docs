@@ -1,0 +1,85 @@
+---
+title: "telegram-send"
+description: "Gửi text, video, ảnh và file qua Telegram Bot API bằng client Python đọc .env theo từng kênh"
+icon: "send"
+---
+
+<Info>
+  **Skill ID**: `$telegram-send` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/telegram-send/SKILL.md) · Provider API: [Telegram Bot API](https://core.telegram.org/bots/api)
+</Info>
+
+## Mục đích
+
+Skill này chuẩn hóa thao tác gửi Telegram qua bot: kiểm tra bot, lấy update để tìm `chat_id`, gửi text, gửi video, gửi ảnh và gửi document. Mỗi kênh dùng một file môi trường riêng theo mẫu `.env.<channel>`.
+
+## Môi trường
+
+Với từng kênh Telegram, repo-root `.env.<channel>` cần có:
+
+```text
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+```
+
+Không đặt biến Telegram trong repo-root `.env`. Tạo file riêng cho từng kênh, rồi truyền `--env-file .env.<channel>`.
+
+`TELEGRAM_CHAT_ID` có thể bỏ trống nếu truyền `--chat-id` trực tiếp. Nếu chưa biết chat id, nhắn tin cho bot một lần rồi chạy:
+
+```bash
+.venv/bin/python skills/telegram-send/scripts/telegram_send.py \
+  updates
+```
+
+<Warning>
+  Không in hoặc commit `TELEGRAM_BOT_TOKEN`. Bot token có thể điều khiển bot.
+</Warning>
+
+## Cách dùng nhanh
+
+Kiểm tra bot:
+
+```bash
+.venv/bin/python skills/telegram-send/scripts/telegram_send.py \
+  get-me
+```
+
+Gửi text:
+
+```bash
+.venv/bin/python skills/telegram-send/scripts/telegram_send.py \
+  send-message --text "Xin chào"
+```
+
+Gửi video:
+
+```bash
+.venv/bin/python skills/telegram-send/scripts/telegram_send.py \
+  --output jobs/<job_id>/source/telegram_send_video.json \
+  send-video jobs/<job_id>/output/final_video_filepost_under25mb_h264.mp4 \
+  --caption-file jobs/<job_id>/source/post_caption.txt
+```
+
+Gửi bằng env của kênh khác:
+
+```bash
+.venv/bin/python skills/telegram-send/scripts/telegram_send.py \
+  --env-file .env.<channel> \
+  send-message --text "Xin chào"
+```
+
+## Giới hạn cần nhớ
+
+- Upload local bằng bot thường giới hạn 50 MB cho video/document.
+- Caption media tối đa 1024 ký tự; script tự cắt caption dài hơn mức này.
+- URL remote có thể bị Telegram áp giới hạn thấp hơn upload local.
+
+## Output
+
+Khi cần tái dùng kết quả, ghi JSON vào:
+
+```text
+source/telegram_send_*.json
+jobs/<job_id>/source/telegram_send_*.json
+```
+
+JSON rút gọn thường gồm `message_id`, `chat_id`, `chat_type`, và `file_id` nếu Telegram trả về file.

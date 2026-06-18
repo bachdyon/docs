@@ -1,10 +1,10 @@
 ---
 title: "Tổng Quan"
-description: "29 public skill phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
+description: "Public project skills phủ toàn bộ pipeline video — đọc trang con để biết cách dùng từng skill"
 icon: "list"
 ---
 
-VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-practices`). Một số skill template nội bộ không xuất hiện trong docs public.
+VAS public **project skills** + **1 skill bên thứ ba** (`$remotion-best-practices`). Một số template skill thương mại không xuất hiện trong docs public.
 
 ## Quản Lý Job
 
@@ -15,6 +15,12 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
   <Card title="video-production-orchestrator" icon="diagram-project" href="/skills/video-production-orchestrator">
     Điều phối toàn pipeline A → Z.
   </Card>
+  <Card title="add-job-to-showcases" icon="folder-up" href="/skills/add-job-to-showcases">
+    Mirror job đã xong sang kho demo public, bỏ `remotion/`.
+  </Card>
+  <Card title="job-to-template" icon="copy" href="/skills/job-to-template">
+    Chuyển job đã hoàn thiện thành template tái sử dụng.
+  </Card>
 </Columns>
 
 ## Lập Kế Hoạch
@@ -22,6 +28,9 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
 <Columns cols={2}>
   <Card title="video-creative-planner" icon="lightbulb" href="/skills/video-creative-planner">
     Brief → script + scene + overlay.
+  </Card>
+  <Card title="knowledge-share-video-content" icon="book-open" href="/skills/knowledge-share-video-content">
+    Viết video_content.md cho video kiến thức, có voiceover duyệt trước.
   </Card>
   <Card title="video-design-spec-builder" icon="palette" href="/skills/video-design-spec-builder">
     Trích phong cách từ video mẫu.
@@ -55,6 +64,17 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
   <Card title="overlay-subject-placement" icon="object-group" href="/skills/overlay-subject-placement">
     Chọn vị trí overlay an toàn theo chủ thể.
   </Card>
+  <Card title="png-to-svg-convertio" icon="file-image" href="/skills/png-to-svg-convertio">
+    Convert PNG local sang SVG qua Convertio API.
+  </Card>
+</Columns>
+
+## Animation
+
+<Columns cols={2}>
+  <Card title="animated-svg" icon="wand-magic-sparkles" href="/skills/animated-svg">
+    Biến SVG local thành HTML animation độc lập, giữ nguyên style gốc.
+  </Card>
 </Columns>
 
 ## Audio
@@ -65,6 +85,9 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
   </Card>
   <Card title="free-tts" icon="microphone-lines" href="/skills/free-tts">
     TTS local/free bằng VieNeu-TTS, preset voice và voice clone.
+  </Card>
+  <Card title="capcut-tts" icon="microphone-lines" href="/skills/capcut-tts">
+    CapCut TTS/STT qua common task client không chính thức.
   </Card>
   <Card title="video-audio-extractor" icon="music" href="/skills/video-audio-extractor">
     Tách audio track từ video sang WAV/MP3.
@@ -78,7 +101,7 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
   <Card title="subtitle-screen-splitter" icon="closed-captioning" href="/skills/subtitle-screen-splitter">
     Chia subtitle thành page ngắn theo dấu câu và chữ hoa.
   </Card>
-  <Card title="subtitle_punch_tag_shortform" icon="bolt" href="/skills/subtitle-punch-tag-shortform">
+  <Card title="subtitle-punch-tag-shortform" icon="bolt" href="/skills/subtitle-punch-tag-shortform">
     Normal + PUNCH word_id, chunk ~7–8 từ, 2 lớp z-index punch, không đứt giữa word.
   </Card>
 </Columns>
@@ -89,8 +112,14 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
   <Card title="video-downloader" icon="download" href="/skills/video-downloader">
     Tải TikTok video/images/audio vào raw_assets hoặc job.
   </Card>
+  <Card title="youtube-fast-download" icon="download" href="/skills/youtube-fast-download">
+    Tải YouTube/Shorts thành MP4 + MP3 trong raw_assets.
+  </Card>
   <Card title="socialkit-api" icon="share-nodes" href="/skills/socialkit-api">
     Lấy transcript, summary, stats, comments và search qua SocialKit.
+  </Card>
+  <Card title="telegram-send" icon="send" href="/skills/telegram-send">
+    Gửi text, video, ảnh và file qua Telegram Bot API.
   </Card>
 </Columns>
 
@@ -106,22 +135,25 @@ VAS public **29 project skill** + **1 skill bên thứ ba** (`$remotion-best-pra
   <Card title="video-compress-under-25mb" icon="file-zipper" href="/skills/video-compress-under-25mb">
     Nén video MP4/MOV xuống dưới ~25MB trước khi upload hoặc gửi inbox.
   </Card>
-  <Card title="zernio-upload-direct" icon="cloud-arrow-up" href="/skills/zernio-upload-direct">
-    Upload attachment lên Zernio và nhận URL tạm cho inbox message.
-  </Card>
 </Columns>
 
 ## Render Video
 
 <Columns cols={2}>
+  <Card title="typography-style-selector" icon="font" href="/skills/typography-style-selector">
+    Chọn font direction, pairing, scale và weight contrast trước khi code/render visual.
+  </Card>
+  <Card title="video-visual-aesthetics" icon="palette" href="/skills/video-visual-aesthetics">
+    Khóa frame composition, motion, background, safe area và anti-template direction.
+  </Card>
+  <Card title="remotion-best-practices" icon="film" href="/skills/remotion-best-practices">
+    Official Remotion rules cho code, preview, render và media handling.
+  </Card>
   <Card title="video-renderer" icon="film" href="/skills/video-renderer">
     Render TOML thành MP4.
   </Card>
   <Card title="video-quality-auditor" icon="shield-check" href="/skills/video-quality-auditor">
     Audit overlay quality và batch fix theo pass.
-  </Card>
-  <Card title="job-to-template" icon="copy" href="/skills/job-to-template">
-    Chuyển job đã hoàn thiện thành template tái sử dụng.
   </Card>
 </Columns>
 

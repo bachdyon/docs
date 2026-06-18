@@ -5,7 +5,7 @@ icon: "download"
 ---
 
 <Info>
-  **Skill ID**: `$video-downloader` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video_downloader/SKILL.md) · Provider API: [TikWM](https://www.tikwm.com/)
+  **Skill ID**: `$video-downloader` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/video-downloader/SKILL.md) · Provider API: [TikWM](https://www.tikwm.com/)
 </Info>
 
 ## Mục đích
@@ -37,12 +37,12 @@ Hoặc gọi script trực tiếp:
 
 ```bash
 # Tải 1 video vào global raw_assets
-python skills/video_downloader/scripts/download_video.py \
+python skills/video-downloader/scripts/download_video.py \
   --url "https://www.tiktok.com/@user/video/123" \
   --hd
 
 # Tải vào job cụ thể
-python skills/video_downloader/scripts/download_video.py \
+python skills/video-downloader/scripts/download_video.py \
   --url "https://www.tiktok.com/@user/video/123" \
   --job jobs/<id> \
   --mode all \

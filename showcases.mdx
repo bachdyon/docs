@@ -4,14 +4,71 @@ description: "Video minh họa các định dạng pipeline VAS có thể dựng
 icon: "clapperboard"
 ---
 
-Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, VDS, skills) rồi hàng **nhiều player** cạnh nhau — thêm URL từng ô khi có thêm bản render / cut / job trong [kho demo công khai trên GitHub](https://github.com/bachdyon/vas-showcases).
+Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, skills) rồi hàng **nhiều player** cạnh nhau — thêm URL từng ô khi có thêm bản render / cut / job trong [kho demo công khai trên GitHub](https://github.com/bachdyon/vas-showcases).
+
+<a
+  href="https://www.facebook.com/bachdyon/"
+  target="_blank"
+  rel="noreferrer"
+  style={{
+    display: "block",
+    margin: "1.5rem 0 2rem",
+    padding: "1.25rem 1.35rem",
+    borderRadius: 14,
+    border: "1px solid rgba(22, 163, 74, 0.35)",
+    background: "linear-gradient(135deg, rgba(22, 163, 74, 0.14), rgba(7, 201, 131, 0.06))",
+    boxShadow: "0 14px 34px rgba(22, 163, 74, 0.16)",
+    textDecoration: "none",
+  }}
+>
+  <div style={{ fontSize: 22, fontWeight: 750, lineHeight: 1.25, color: "var(--font-color)" }}>
+    Bạn muốn làm video như bên dưới? Nhắn Bách Dyon
+  </div>
+  <div style={{ marginTop: 8, fontSize: 15, lineHeight: 1.55, color: "var(--font-color-muted)" }}>
+    Không cần tự mò mẫm khổ sở. Gửi brief hoặc video mẫu, Bách sẽ tư vấn workflow phù hợp.
+  </div>
+  <div
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      marginTop: 14,
+      padding: "0.55rem 0.8rem",
+      borderRadius: 999,
+      background: "#16A34A",
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 700,
+    }}
+  >
+    Nhắn qua Facebook
+  </div>
+</a>
+
+## Thêm job mới vào showcases
+
+Dùng [`$add-job-to-showcases`](/skills/add-job-to-showcases) khi bạn muốn đưa một job đã render xong từ `jobs/<job_id>/` sang kho demo công khai `showcases/<job_id>/`.
+
+<Warning>
+  Không copy `remotion/` vào `showcases/`. Showcase chỉ giữ artifact public để xem và truy vết pipeline: `job.toml`, `input/`, `source/`, `logs/`, `output/`, đặc biệt là `output/final_video.mp4`.
+</Warning>
+
+<Steps>
+  <Step title="Mirror job sang showcases">
+    Copy `jobs/<job_id>/` sang `showcases/<job_id>/`, loại `remotion/`, `node_modules`, `.git`, `.DS_Store`, `.remotion`, `out`, `build`, và `dist`.
+  </Step>
+  <Step title="Verify bản public">
+    Chạy `find showcases/<job_id> -type d -name remotion -print` và `diff -qr --exclude remotion --exclude node_modules --exclude .git --exclude .DS_Store jobs/<job_id> showcases/<job_id>`.
+  </Step>
+  <Step title="Thêm video vào trang này">
+    Gắn player vào đúng nhóm định dạng, dùng URL `https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/<job_id>/output/final_video.mp4`.
+  </Step>
+</Steps>
 
 ## Video tin tức — News intro + clip gốc
 
 | Thuộc tính | Nội dung |
 | --- | --- |
 | **Định dạng** | 9:16 (1080×1920 khuyến nghị) · TikTok / Reels / Shorts |
-| **VDS tóm tắt** | Template *News Intro + Source Clip Explainer*: phông tin tức + `[NEWS_BRAND]` / headline, giọng `[AI_INTRO_VOICE]` đọc hook và ngữ cảnh, **hard cut** sang `[SOURCE_CLIP]` giữ âm gốc; highlight bằng caption/SFX ngắn; intro ~10–20% timeline, thân clip ~70–85%. |
 | **Skills** | [video-design-spec-builder](/skills/video-design-spec-builder) · [video-creative-planner](/skills/video-creative-planner) · [overlay-subject-placement](/skills/overlay-subject-placement) · [ausynclab-voice](/skills/ausynclab-voice) · [video-render-plan-builder](/skills/video-render-plan-builder) · [video-quality-auditor](/skills/video-quality-auditor) · [video-renderer](/skills/video-renderer) |
 
 <div
@@ -69,7 +126,6 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
 | Thuộc tính | Nội dung |
 | --- | --- |
 | **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts |
-| **VDS tóm tắt** | Source clip toàn màn hình giữ audio gốc; overlay text dạng **pill theo từng dòng** (line-based capsules), bo góc động theo tương quan độ dài từng dòng; không voiceover, không subtitle. |
 | **Skills** | [video-job-manager](/skills/video-job-manager) · [video-downloader](/skills/video-downloader) · [overlay-subject-placement](/skills/overlay-subject-placement) · [video-quality-auditor](/skills/video-quality-auditor) · [remotion-best-practices](https://github.com/remotion-dev/skills) |
 | **Thông số overlay** | Top 25% · căn giữa ngang · chữ đen nền trắng · font BeVietnamPro 44 · line gap 0 · 3 dòng text + emoji |
 
@@ -128,7 +184,6 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
 | Thuộc tính | Nội dung |
 | --- | --- |
 | **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts |
-| **VDS tóm tắt** | Video pitch sản phẩm theo nhịp nhanh: hook ngắn, nêu pain point/lợi ích chính, nhấn mạnh USP và CTA; ưu tiên pacing dứt khoát, cắt cảnh gọn, giữ trọng tâm vào thông điệp bán hàng. |
 | **Skills** | [video-creative-planner](/skills/video-creative-planner) · [video-render-plan-builder](/skills/video-render-plan-builder) · [video-quality-auditor](/skills/video-quality-auditor) · [video-renderer](/skills/video-renderer) |
 
 <div
@@ -186,7 +241,6 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
 | Thuộc tính | Nội dung |
 | --- | --- |
 | **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts |
-| **VDS tóm tắt** | Khung video vuông bo góc đặt giữa màn hình, viền fade mềm vào bên trong; subtitle karaoke tối đa 2 chữ nằm trong đáy khung; tên kênh đặt bên dưới khung. Phù hợp video podcast / storytelling dùng audio chính và B-roll cắt nhanh. |
 | **Skills** | [subtitle-screen-splitter](/skills/subtitle-screen-splitter) · [word-timestamps-extractor](/skills/word-timestamps-extractor) · [semantic-asset-mapper](/skills/semantic-asset-mapper) · [video-renderer](/skills/video-renderer) |
 
 <div
@@ -244,8 +298,7 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
 | Thuộc tính | Nội dung |
 | --- | --- |
 | **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts — phù hợp **video nhân hiệu**: nói trực tiếp, nhấn điểm hook bằng chữ. |
-| **VDS tóm tắt** | Clip gốc full màn; **caption vùng ngực trên** (Be Vietnam Pro): dòng **normal** trắng đồng bộ **word timestamps**; **PUNCH** ngắn (vàng `#ffe800` / đỏ `#ff1600` xen chunk), shadow đen **chỉ lớp dưới**, lớp trên fill sạch; chunk ~7–8 từ, punch chọn theo **ngữ nghĩa**; không xuống dòng giữa Whisper word; có decor icon quỹ đạo quanh PUNCH (tùy template). |
-| **Skills** | [word-timestamps-extractor](/skills/word-timestamps-extractor) · [subtitle-screen-splitter](/skills/subtitle-screen-splitter) · [subtitle_punch_tag_shortform](/skills/subtitle-punch-tag-shortform) · [video-job-manager](/skills/video-job-manager) · [remotion-best-practices](https://github.com/remotion-dev/skills) |
+| **Skills** | [word-timestamps-extractor](/skills/word-timestamps-extractor) · [subtitle-screen-splitter](/skills/subtitle-screen-splitter) · [subtitle-punch-tag-shortform](/skills/subtitle-punch-tag-shortform) · [video-job-manager](/skills/video-job-manager) · [remotion-best-practices](https://github.com/remotion-dev/skills) |
 
 <div
   style={{
@@ -278,6 +331,37 @@ Mỗi **định dạng** một mục riêng: bảng tóm tắt (định dạng, 
     >
       <source
         src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-05-07_004_tiktok-personal-brand-broll/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+</div>
+
+## Threads video — Ảnh chụp bình luận + gameplay nền
+
+| Thuộc tính | Nội dung |
+| --- | --- |
+| **Định dạng** | 9:16 (1080×1920) · TikTok / Reels / Shorts — phù hợp video đọc thread, bình luận xã hội, tranh luận công sở / đời sống. |
+| **Skills** | [video-job-manager](/skills/video-job-manager) · [capcut-tts](/skills/capcut-tts) · [word-timestamps-extractor](/skills/word-timestamps-extractor) · [add-job-to-showcases](/skills/add-job-to-showcases) |
+
+<div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "1rem",
+    alignItems: "flex-start",
+    marginTop: "1.25rem",
+  }}
+>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <video
+      controls
+      playsInline
+      width="100%"
+      style={{ borderRadius: 8, display: "block", aspectRatio: "9 / 16", objectFit: "cover", background: "#000" }}
+    >
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-06-18_001_video-threads-phu-nu-bi-chen-ep-lao-dong/output/final_video.mp4"
         type="video/mp4"
       />
     </video>

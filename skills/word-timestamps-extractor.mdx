@@ -5,7 +5,7 @@ icon: "closed-captioning"
 ---
 
 <Info>
-  **Skill ID**: `$word-timestamps-extractor` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/word_timestamps_extractor/SKILL.md)
+  **Skill ID**: `$word-timestamps-extractor` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/word-timestamps-extractor/SKILL.md)
 </Info>
 
 ## Mục đích
@@ -20,10 +20,10 @@ Lấy file audio narration → trả về transcript có timestamp **cấp câu 
 
 ## Cách sử dụng
 
-Cần `OPENAI_API_KEY` trong `.env`. Gõ:
+Cần `faster-whisper` trong Python environment đang chạy. `OPENAI_API_KEY` trong `.env` chỉ cần khi chủ động chạy fallback `--backend openai`. Gõ:
 
 ```text
 $word-timestamps-extractor — extract word timestamps from source/voice.wav, language vi
 ```
 
-Agent gọi Whisper/OpenAI transcription qua script, normalize output, ghi vào `source/transcript_word_level.toml`.
+Agent gọi local `faster-whisper` qua script, normalize output, ghi vào `source/transcript_word_level.toml`. Fallback OpenAI vẫn có bằng `--backend openai`.

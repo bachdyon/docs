@@ -1,0 +1,81 @@
+---
+title: "knowledge-share-video-content"
+description: "Viết hoặc cập nhật video_content.md cho video chia sẻ kiến thức, có voiceover duyệt trước và gợi ý visual không chữ"
+icon: "book-open"
+---
+
+<Info>
+  **Skill ID**: `$knowledge-share-video-content` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/knowledge-share-video-content/SKILL.md)
+</Info>
+
+## Mục đích
+
+Viết nội dung nền cho video chia sẻ kiến thức / giáo dục đời sống, đặc biệt các chủ đề kinh tế, tài chính cá nhân, hành vi tiêu dùng, công việc, thu nhập, thị trường hoặc những hệ thống quen thuộc hằng ngày.
+
+Output chính là `video_content.md`, có thể dùng tiếp cho creative plan, voiceover, image generation và Remotion planning.
+
+## Khi nào invoke
+
+- User muốn viết, rewrite, đào sâu hoặc cấu trúc nội dung video kiến thức.
+- Cần một voiceover tiếng Việt có nhịp kể chuyện tự nhiên trước khi bước vào pipeline sản xuất.
+- Cần scene gợi ý cho ảnh AI theo style 3D isometric nhưng không muốn text nằm trong ảnh.
+
+Nếu task đồng thời tạo job video, dùng thêm `$video-job-manager`. Nếu task đồng thời tạo production plan hoặc scene intents TOML, chỉ dùng `$video-creative-planner` sau khi voiceover đã được user duyệt, trừ khi user nói rõ muốn bỏ qua bước duyệt.
+
+## Approval Gate
+
+Khi nội dung sẽ đi vào pipeline tạo video, agent phải dừng sau bước viết voiceover:
+
+- Ghi script hoàn chỉnh vào `jobs/<job_id>/source/narration.txt`.
+- Ghi cùng nội dung vào mục `## Voiceover hoàn chỉnh` trong `video_content.md`.
+- Gửi nguyên văn voiceover cho user duyệt.
+- Không chạy TTS, không tạo ảnh AI, không tạo scene JSON, không tạo subtitle cues, không instantiate template, và không render trước khi user xác nhận.
+
+Sau khi user duyệt, ghi `jobs/<job_id>/source/voiceover_approval.toml` để các skill phía sau biết script đã chốt.
+
+## Cấu trúc Markdown
+
+```markdown
+# <Tiêu đề>
+
+## Mục tiêu video
+
+## Câu mở đầu
+
+## Voiceover hoàn chỉnh
+
+## Câu hỏi phụ cần trả lời
+
+## Cấu trúc triển khai
+
+## Scene gợi ý
+
+| # | Vai trò | Nội dung nói | Visual 3D isometric gợi ý | Quy tắc ảnh |
+|---|---|---|---|---|
+
+## Ghi chú style
+```
+
+## Quy tắc nội dung
+
+- Mở đầu phải kéo người xem vào một tình huống quen thuộc, tạo câu hỏi còn bỏ ngỏ, và tránh phán xét.
+- Voiceover cần có cơ chế giải thích, không chỉ liệt kê ví dụ.
+- Với chủ đề kinh tế / tài chính, giải thích cơ chế trước khi đưa lời khuyên.
+- Dùng tiếng Việt tự nhiên, câu ngắn, chuyển ý sạch.
+- Khi cần sắc thái mạnh, tăng cường độ ngôn ngữ ở hook, luận điểm xoay trục, phản biện và takeaway.
+
+## Quy tắc visual
+
+Scene gợi ý phải phục vụ image/video generation nhưng không nhúng chữ vào ảnh:
+
+- Generated image asset: `1:1` transparent PNG.
+- Final video canvas: `9:16`.
+- Style: `3D isometric, bo tròn mềm mại`.
+- Không chữ, không số, không nhãn, không logo, không watermark trong ảnh.
+
+Mỗi row scene nên nhắc lại:
+
+```text
+1:1 transparent PNG, không chữ, không số, không nhãn, không logo
+```
+

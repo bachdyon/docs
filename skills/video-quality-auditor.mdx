@@ -5,7 +5,7 @@ icon: "shield-check"
 ---
 
 <Info>
-  **Skill ID**: `$video-quality-auditor` · Source: `skills/video_quality_auditor/SKILL.md`
+  **Skill ID**: `$video-quality-auditor` · Source: `skills/video-quality-auditor/SKILL.md`
 </Info>
 
 ## Mục đích
@@ -55,15 +55,15 @@ $video-quality-auditor — audit job hiện tại và đề xuất batch fix t�
 Hoặc chạy script:
 
 ```bash
-.venv/bin/python skills/video_quality_auditor/scripts/audit_video.py \
+.venv/bin/python skills/video-quality-auditor/scripts/audit_video.py \
   --job jobs/<job_id> \
   --pass-index 1
 
-.venv/bin/python skills/video_quality_auditor/scripts/render_html_report.py \
+.venv/bin/python skills/video-quality-auditor/scripts/render_html_report.py \
   --job jobs/<job_id> \
   --pass-index 1
 
-.venv/bin/python skills/video_quality_auditor/scripts/apply_fix_batch.py \
+.venv/bin/python skills/video-quality-auditor/scripts/apply_fix_batch.py \
   --job jobs/<job_id> \
   --pass-index 1
 ```

@@ -1,0 +1,51 @@
+---
+title: "video-visual-aesthetics"
+description: "Định hướng visual khác biệt cho video render bằng HTML/CSS/JS hoặc Remotion"
+icon: "palette"
+---
+
+<Info>
+  **Skill ID**: `$video-visual-aesthetics` · Source: `skills/video-visual-aesthetics/SKILL.md`
+</Info>
+
+## Mục đích
+
+Use this skill before making visual-design decisions for videos rendered from HTML, CSS, JavaScript, or Remotion. The output is a moving video, not an interactive website, so every design decision must serve readability, timing, safe area, frame composition, motion rhythm, and render stability.
+
+## Dependencies bắt buộc
+
+- Nếu có Remotion-specific code, rendering, previewing hoặc validation, load `$remotion-best-practices` trước khi quyết định Remotion.
+- Nếu video có captions, headlines, title cards, thumbnail text, kinetic typography hoặc typography-heavy layout, load `$typography-style-selector` trước và dùng typography decision của skill đó.
+- Nếu overlay có thể che người, sản phẩm hoặc footage quan trọng, dùng `$overlay-subject-placement` trước khi chốt placement.
+
+## Design brief first
+
+Trước khi code, viết render plan hoặc sửa composition, agent phải state brief:
+
+```text
+Video visual brief:
+- Visual concept:
+- Intended mood:
+- Typography decision: from $typography-style-selector, if text-heavy
+- Color system:
+- Composition strategy:
+- Motion strategy:
+- Scene structure:
+- Background treatment:
+- Safe-area/readability plan:
+- Anti-default choices:
+```
+
+## Core rules
+
+- Design frame-by-frame. Mỗi frame quan trọng cần visual anchor rõ, hierarchy mạnh và negative space có chủ đích.
+- Optimize cho target aspect ratio; không scale thẳng 9:16 sang 1:1 hoặc 16:9.
+- Với 9:16, giữ text/chủ thể quan trọng trong center-safe area và tránh cực trên/cực dưới.
+- Treat motion as direction, not decoration.
+- Prefer one or two memorable motion moments over many scattered fades.
+- Make animation deterministic for frame-by-frame rendering.
+- Avoid unstable remote assets, runtime network calls, hover/scroll/input behavior, and layout shift.
+
+## Tránh generic AI video aesthetic
+
+Tránh gradient tím/xanh chung chung, floating rounded cards ở mọi nơi, default fonts, text center-align mọi scene, landing-page layout repurposed thành video frame, fade/scale giống nhau, background trang trí không liên quan, và visual system có thể dùng cho bất kỳ video nào.

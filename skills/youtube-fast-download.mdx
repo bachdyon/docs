@@ -1,0 +1,79 @@
+---
+title: "youtube-fast-download"
+description: "Tải YouTube video hoặc Shorts nhanh bằng yt-dlp, luôn xuất MP4 video và MP3 audio vào raw_assets"
+icon: "download"
+---
+
+<Info>
+  **Skill ID**: `$youtube-fast-download` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/youtube-fast-download/SKILL.md)
+</Info>
+
+## Mục đích
+
+Tải public YouTube video hoặc Shorts với workflow ít token và nhanh: luôn lưu cả video MP4 và audio MP3 để pipeline có thể dùng footage hoặc transcript/audio ngay.
+
+Output mặc định:
+
+- Video: `raw_assets/videos/downloaded/`
+- Audio: `raw_assets/audio/downloaded/`
+
+## Khi nào invoke
+
+- User đưa YouTube URL và yêu cầu download video.
+- User muốn lấy audio hoặc export MP3 từ YouTube.
+- Cần ingest nhanh Shorts/video public vào raw asset pool.
+- Cần tạo MP3 từ một video local đã tải mà không redownload.
+
+## Core Rule
+
+Dùng script kèm repo thay vì dựng lại lệnh `yt-dlp` và `ffmpeg` dài trong chat.
+
+```bash
+.venv/bin/python skills/youtube-fast-download/scripts/download_youtube_fast.py \
+  "https://www.youtube.com/shorts/VIDEO_ID"
+```
+
+## Fast Paths
+
+Video + MP3:
+
+```bash
+.venv/bin/python skills/youtube-fast-download/scripts/download_youtube_fast.py "<url>"
+```
+
+Backward-compatible explicit MP3 flag:
+
+```bash
+.venv/bin/python skills/youtube-fast-download/scripts/download_youtube_fast.py "<url>" --mp3
+```
+
+MP3 từ video local, không redownload:
+
+```bash
+.venv/bin/python skills/youtube-fast-download/scripts/download_youtube_fast.py \
+  --from-video raw_assets/videos/downloaded/input.mp4
+```
+
+## Defaults
+
+| Field | Value |
+| --- | --- |
+| Video output dir | `raw_assets/videos/downloaded` |
+| Audio output dir | `raw_assets/audio/downloaded` |
+| Format | `bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best` |
+| Merge container | `mp4` |
+| MP3 bitrate | `192k` |
+| Fragment concurrency | `16` |
+
+## Workflow
+
+1. Dùng `yt-dlp` trong `.venv` khi có sẵn; chỉ cài thêm khi module thiếu.
+2. Download best MP4-compatible output với fragment concurrency.
+3. Merge video thành MP4.
+4. Export MP3 bằng `ffmpeg` + `libmp3lame`.
+5. Chỉ chạy `ffprobe` khi user cần xác nhận metadata hoặc downstream phụ thuộc duration/codec.
+
+## Reporting
+
+Không in signed direct media URL. Chỉ báo local file paths, duration, codec, size và warning quan trọng nếu có.
+

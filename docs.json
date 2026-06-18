@@ -48,7 +48,9 @@
                 "expanded": false,
                 "pages": [
                   "skills/video-job-manager",
-                  "skills/video-production-orchestrator"
+                  "skills/video-production-orchestrator",
+                  "skills/add-job-to-showcases",
+                  "skills/job-to-template"
                 ]
               },
               {
@@ -56,8 +58,11 @@
                 "expanded": false,
                 "pages": [
                   "skills/video-creative-planner",
+                  "skills/knowledge-share-video-content",
                   "skills/video-design-spec-builder",
-                  "skills/video-render-plan-builder"
+                  "skills/video-render-plan-builder",
+                  "skills/typography-style-selector",
+                  "skills/video-visual-aesthetics"
                 ]
               },
               {
@@ -70,7 +75,15 @@
                   "skills/create-edit-image-gpt-image-2",
                   "skills/create-video-seedance-2-0",
                   "skills/fal-image-generator",
-                  "skills/overlay-subject-placement"
+                  "skills/overlay-subject-placement",
+                  "skills/png-to-svg-convertio"
+                ]
+              },
+              {
+                "group": "Animation",
+                "expanded": false,
+                "pages": [
+                  "skills/animated-svg"
                 ]
               },
               {
@@ -79,6 +92,7 @@
                 "pages": [
                   "skills/ausynclab-voice",
                   "skills/free-tts",
+                  "skills/capcut-tts",
                   "skills/video-audio-extractor",
                   "skills/audio-deduplicate",
                   "skills/word-timestamps-extractor",
@@ -91,7 +105,9 @@
                 "expanded": false,
                 "pages": [
                   "skills/video-downloader",
-                  "skills/socialkit-api"
+                  "skills/youtube-fast-download",
+                  "skills/socialkit-api",
+                  "skills/telegram-send"
                 ]
               },
               {
@@ -100,17 +116,16 @@
                 "pages": [
                   "skills/filepost-file-upload",
                   "skills/heygen-asset-upload",
-                  "skills/video-compress-under-25mb",
-                  "skills/zernio-upload-direct"
+                  "skills/video-compress-under-25mb"
                 ]
               },
               {
                 "group": "Render",
                 "expanded": false,
                 "pages": [
+                  "skills/remotion-best-practices",
                   "skills/video-renderer",
-                  "skills/video-quality-auditor",
-                  "skills/job-to-template"
+                  "skills/video-quality-auditor"
                 ]
               },
               {

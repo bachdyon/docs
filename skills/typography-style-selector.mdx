@@ -1,0 +1,44 @@
+---
+title: "typography-style-selector"
+description: "Chọn typography khác biệt: font direction, pairing, hierarchy, scale và weight contrast"
+icon: "font"
+---
+
+<Info>
+  **Skill ID**: `$typography-style-selector` · Source: `skills/typography-style-selector/SKILL.md`
+</Info>
+
+## Mục đích
+
+Use this skill before making typography-specific design decisions. Typography should signal intent and quality immediately.
+
+Skill này dùng cho website, app, Remotion video, caption, thumbnail, social post, deck, landing page, brand visual hoặc bất kỳ artifact nào mà font choice, font pairing, scale, weight hoặc typographic style ảnh hưởng tới cảm nhận chất lượng.
+
+## Quy tắc chính
+
+- Avoid boring, generic typography.
+- Never use `Inter`, `Roboto`, `Open Sans`, `Lato`, or default system fonts as the primary visual style.
+- Pick one distinctive font direction and use it decisively.
+- Load from Google Fonts when the target runtime supports web fonts.
+- State the font choice and rationale before coding or rendering typography-heavy output.
+- Prefer strong contrast: display + monospace, serif + geometric sans, or a variable font used across extreme weights.
+- Use extremes: `100/200` vs `800/900`, not `400` vs `600`.
+- Use meaningful size jumps of `3x+` for hierarchy when the layout can support it.
+
+## Font directions
+
+- **Code aesthetic:** `JetBrains Mono`, `Fira Code`, `Space Grotesk`
+- **Editorial:** `Playfair Display`, `Crimson Pro`, `Fraunces`
+- **Startup:** `Clash Display`, `Satoshi`, `Cabinet Grotesk`
+- **Technical:** `IBM Plex Sans`, `IBM Plex Mono`, `IBM Plex Serif`, `Source Sans 3`
+- **Distinctive:** `Bricolage Grotesque`, `Obviously`, `Newsreader`
+
+## Output contract
+
+Trước khi code/render, agent phải nói rõ lựa chọn typography:
+
+```text
+Typography choice: Space Grotesk for the main voice, JetBrains Mono for technical accents, using 800 vs 200 weight contrast.
+```
+
+Sau đó mới implement typography trong CSS, Remotion style objects, Tailwind config/classes hoặc design system đích.

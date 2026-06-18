@@ -1,0 +1,54 @@
+---
+title: "add-job-to-showcases"
+description: "Mirror job đã render xong sang kho showcases public, bỏ Remotion project và cập nhật docs demo"
+icon: "folder-up"
+---
+
+<Info>
+  **Skill ID**: `$add-job-to-showcases` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/add-job-to-showcases/SKILL.md)
+</Info>
+
+## Mục đích
+
+Skill này tạo một entry public trong [trang showcases](/showcases) từ một job đã hoàn thiện trong `jobs/<job_id>/`. Một showcase entry là bản copy có thể truy vết của các artifact quan trọng cho demo và audit: `job.toml`, `input/`, `source/`, `logs/`, và `output/`, đặc biệt là `output/final_video.mp4`.
+
+Không copy `remotion/`. Mẫu hiện có như `jobs/2026-04-28_004_test_nam_vuong` và `showcases/2026-04-28_004_test_nam_vuong` khớp nhau khi diff với `--exclude remotion --exclude .DS_Store`; chỉ job gốc có thư mục `remotion/`.
+
+## Workflow
+
+1. Xác định source `jobs/<job_id>/` và target `showcases/<job_id>/`.
+2. Kiểm tra `output/final_video.mp4` tồn tại.
+3. Copy job sang `showcases/`, loại `remotion/`, `node_modules`, `.git`, `.DS_Store`, `.remotion`, `out`, `build`, và `dist`.
+4. Verify target không có `remotion/` và diff chỉ khác các file đã exclude.
+5. Thêm player vào `docs/showcases.mdx` với URL raw từ repo `bachdyon/vas-showcases`.
+6. Kiểm tra status ở root repo, `showcases/`, và `docs/`.
+
+## Lệnh mẫu
+
+```bash
+rsync -a \
+  --exclude remotion \
+  --exclude node_modules \
+  --exclude .git \
+  --exclude .DS_Store \
+  --exclude .remotion \
+  --exclude out \
+  --exclude build \
+  --exclude dist \
+  jobs/<job_id>/ \
+  showcases/<job_id>/
+```
+
+```bash
+find showcases/<job_id> -type d -name remotion -print
+diff -qr --exclude remotion --exclude node_modules --exclude .git --exclude .DS_Store \
+  jobs/<job_id> \
+  showcases/<job_id>
+```
+
+## Quality gates
+
+- `showcases/<job_id>/output/final_video.mp4` tồn tại.
+- Không có `remotion/` trong `showcases/<job_id>/`.
+- Docs embed trỏ đúng `https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/<job_id>/output/final_video.mp4`.
+- Final response nói rõ `showcases/` và `docs/` là repo riêng nếu cần commit/push.

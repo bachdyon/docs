@@ -1,0 +1,81 @@
+---
+title: "capcut-tts"
+description: "CapCut TTS/STT qua common task client không chính thức"
+icon: "microphone-lines"
+---
+
+<Info>
+  **Skill ID**: `$capcut-tts` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/capcut-tts/SKILL.md) · [Client tham chiếu](https://github.com/K07VN/capcut-tts-api)
+</Info>
+
+## Mục đích
+
+Dùng `capcut_common_task_client.py` để tạo/query CapCut Text-to-Speech task, upload audio/video, hoặc chạy STT/subtitle recognition qua flow common task của CapCut.
+
+<Warning>
+  Đây là flow không chính thức/reverse-engineered, không phải API public được CapCut bảo đảm ổn định. Chỉ dùng khi bạn yêu cầu rõ CapCut TTS/STT và chỉ với tài khoản, thiết bị, session, text, audio/video mà bạn có quyền sử dụng.
+</Warning>
+
+## Khi nào được invoke
+
+- User yêu cầu rõ "CapCut TTS", "giọng CapCut", hoặc muốn thử giọng đọc CapCut.
+- User yêu cầu CapCut subtitle recognition / STT từ audio hoặc video.
+- User muốn kiểm thử `K07VN/capcut-tts-api` trong pipeline.
+
+Không dùng skill này làm provider narration mặc định. Nếu user chỉ nói "tạo voice", agent vẫn ưu tiên `$ausynclab-voice` hoặc `$free-tts` theo cấu hình repo.
+
+## Cách sử dụng
+
+Trước tiên agent tìm client local:
+
+```bash
+rg --files | rg '(^|/)capcut_common_task_client\.py$'
+```
+
+Nếu chưa có client, agent sẽ hỏi trước khi clone/download repo bên thứ ba.
+
+Tạo TTS task:
+
+```bash
+python3 capcut_common_task_client.py tts-new \
+  --text "Xin chào"
+```
+
+Query TTS task:
+
+```bash
+python3 capcut_common_task_client.py tts-query \
+  --task-id "TASK_ID" \
+  --token "TOKEN" \
+  --out source/capcut_tts_result.json
+```
+
+Chạy STT từ file:
+
+```bash
+python3 capcut_common_task_client.py stt-file \
+  --audio-file input.mp4 \
+  --language vi-VN
+```
+
+## Artifact đầu ra
+
+Với job thường:
+
+```text
+source/voice.wav
+source/capcut_tts_task.json
+source/capcut_tts_result.json
+source/capcut_stt_result.json
+```
+
+Với video job:
+
+```text
+jobs/<job_id>/source/voice.wav
+jobs/<job_id>/source/capcut_tts_task.json
+jobs/<job_id>/source/capcut_tts_result.json
+jobs/<job_id>/source/capcut_stt_result.json
+```
+
+Agent không in `device.json`, task token, session/cookie, hoặc response nhạy cảm ra câu trả lời cuối.

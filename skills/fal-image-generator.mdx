@@ -5,7 +5,7 @@ icon: "wand-magic-sparkles"
 ---
 
 <Info>
-  **Skill ID**: `$fal-image-generator` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/fal_image_generator/SKILL.md) · [fal.ai](https://fal.ai/)
+  **Skill ID**: `$fal-image-generator` · [Source](https://github.com/bachdyon/video-automator-skills/blob/main/skills/fal-image-generator/SKILL.md) · [fal.ai](https://fal.ai/)
 </Info>
 
 ## Mục đích
@@ -34,7 +34,7 @@ Hoặc gọi script trực tiếp:
 
 ```bash
 # 1 prompt + reference (cố định nhân vật)
-python skills/fal_image_generator/scripts/fal_image_generator.py generate \
+python skills/fal-image-generator/scripts/fal_image_generator.py generate \
   --env-file .env \
   --prompt "Portrait of a young woman in a sunlit kitchen, vertical composition" \
   --reference-images jobs/<id>/input/reference/character_main.jpg \
@@ -42,7 +42,7 @@ python skills/fal_image_generator/scripts/fal_image_generator.py generate \
   --report-toml jobs/<id>/source/ai_image_generation.toml
 
 # Tự đọc creative plan, sinh cho scene flag ai_generated
-python skills/fal_image_generator/scripts/fal_image_generator.py generate \
+python skills/fal-image-generator/scripts/fal_image_generator.py generate \
   --env-file .env \
   --from-creative-plan jobs/<id>/source/creative_plan.toml \
   --reference-images jobs/<id>/input/reference/character_main.jpg \

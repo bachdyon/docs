@@ -1,0 +1,74 @@
+---
+title: "remotion-best-practices"
+description: "Official Remotion skill cho code React video, composition, timing, assets, captions, audio và render checks"
+icon: "film"
+---
+
+<Info>
+  **Skill ID**: `$remotion-best-practices` · Installed path: `.agents/skills/remotion-best-practices/SKILL.md` · [Remotion docs](https://www.remotion.dev/docs)
+</Info>
+
+## Mục đích
+
+Đây là skill bên thứ ba chính thức cho các quyết định liên quan đến Remotion: tạo project, viết composition React, timing, animation, assets, captions, audio, FFmpeg, render still và các rule chuyên sâu.
+
+Trong repo này, mọi task tạo, scaffold, update, preview, render hoặc validate Remotion project đều phải load và tham chiếu skill này trước khi ra quyết định Remotion-specific.
+
+## Khi nào invoke
+
+- Tạo Remotion project mới.
+- Sửa component, composition, duration, fps, default props hoặc metadata.
+- Làm caption/subtitle, audio visualization, sound effects hoặc video trimming.
+- Thêm ảnh, video, font, Lottie, GIF, chart, map hoặc Three.js vào Remotion.
+- Render still/final để kiểm tra layout, timing, màu sắc hoặc output.
+
+## New Project Setup
+
+Khi ở folder trống chưa có Remotion project:
+
+```bash
+npx create-video@latest --yes --blank --no-tailwind my-video
+```
+
+Trong repo này, với job mới dưới `jobs/<job_id>/remotion`, dependency rule là dùng symlink đến repo-root `../../../node_modules`, không chạy `npm install` riêng trong từng job folder.
+
+## Preview Và Render Check
+
+Mở Remotion Studio:
+
+```bash
+npx remotion studio
+```
+
+Render một frame để sanity-check layout:
+
+```bash
+npx remotion still [composition-id] --scale=0.25 --frame=30
+```
+
+Ở 30 fps, `--frame=30` là mốc 1 giây vì frame index bắt đầu từ 0.
+
+## Rule Files
+
+Skill có nhiều rule chuyên sâu trong `.agents/skills/remotion-best-practices/rules/`. Chỉ load file liên quan đến task hiện tại:
+
+| Rule | Khi dùng |
+| --- | --- |
+| `subtitles.md` | Caption/subtitle |
+| `ffmpeg.md` | Cắt, trim, xử lý video/audio bằng FFmpeg |
+| `silence-detection.md` | Detect và trim đoạn lặng |
+| `audio-visualization.md` | Waveform, spectrum bars, bass-reactive effects |
+| `sfx.md` | Sound effects |
+| `assets.md` | Import image/video/audio/font |
+| `animations.md` / `timing.md` | Timing, spring, interpolate, easing |
+| `measuring-text.md` | Fit text và tránh overflow |
+| `compositions.md` | Composition, stills, folders, default props |
+| `parameters.md` | Zod schema và parametrized video |
+
+## Repo-Specific Notes
+
+- Trước project Remotion mới, chạy `scripts/ensure-remotion-skill.sh` hoặc xác nhận `.agents/skills/remotion-best-practices/SKILL.md` tồn tại.
+- Nếu skill thiếu, cài bằng `npx skills add remotion-dev/skills --yes`.
+- Khi render trong job, dùng shared root `node_modules` theo rule của repo.
+- Với template under `templates/<template_id>/`, phải load template skill tương ứng và `template.toml` trước khi sửa/render.
+

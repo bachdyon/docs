@@ -1,0 +1,74 @@
+---
+title: "animated-svg"
+description: "Tạo HTML animated SVG độc lập, giữ nguyên style gốc và chọn motion theo nội dung hình"
+icon: "wand-magic-sparkles"
+---
+
+<Info>
+  **Skill ID**: `$animated-svg` · Source: `skills/animated-svg/SKILL.md`
+</Info>
+
+## Mục đích
+
+Biến một SVG local thành một file HTML độc lập có inline SVG + CSS animation, không dùng asset ngoài. Skill này phù hợp cho icon, minh họa vector, stick figure, doodle, logo hoặc SVG flatten thành path cần animation nhẹ.
+
+Output mặc định:
+
+- Một file `.html` standalone.
+- SVG inline, giữ `viewBox`, `defs`, `mask`, `clipPath`, fill/stroke và style gốc.
+- Path được nhóm theo phần có nghĩa trong hình như `head`, `body`, `arms`, `legs`, `sweat_drops`, `thought_cloud`, `ground_crack`.
+
+## Khi nào invoke
+
+- User đưa một SVG và muốn “animate như file trước”.
+- Cần tạo animation loop 4 giây cho SVG nhưng vẫn giữ style gốc.
+- SVG bị flatten thành nhiều path khó đọc và cần phân tích bounding box/subpath trước khi nhóm.
+
+## Cách dùng nhanh
+
+```text
+$animated-svg — animate SVG này thành một HTML độc lập, chọn chuyển động phù hợp với nội dung hình
+```
+
+## Workflow chính
+
+1. Inspect SVG source: đếm `path`, `g`, `mask`, `clipPath`, `rect`, `circle`, `text`.
+2. Render ảnh gốc để hiểu chủ thể và hành động trong hình.
+3. Nếu SVG path-heavy, chạy analyzer:
+
+```bash
+python3 skills/animated-svg/scripts/analyze_svg.py path/to/source.svg \
+  --debug-html /private/tmp/svg_debug.html
+```
+
+4. Render debug HTML khi cần xem từng subpath:
+
+```bash
+playwright screenshot --viewport-size=1000,1000 \
+  file:///private/tmp/svg_debug.html \
+  /private/tmp/svg_debug.png
+```
+
+5. Group path theo semantic part, không group theo thứ tự path máy móc.
+6. Chọn animation theo nội dung hình:
+
+- Nhân vật: head tilt, body bob, limb swing, sweat pop.
+- Lo âu/suy nghĩ: cloud float, scribble jitter, bubbles pulse, stress marks pop.
+- Nguy hiểm/vết nứt: crack jolt, debris drop, character brace/stumble.
+- Object/tool: rotation nhẹ, pulse, highlight shimmer.
+
+## Guardrails
+
+- Không làm hỏng `fill-rule`: nếu tách compound path khiến lỗ trắng bị đen, giữ compound path hoặc vẽ cutout bằng màu nền.
+- Với SVG có global transform như `translate(...) scale(...)`, giữ transform ở inner `<g>` và animate outer semantic `<g>`.
+- Không dùng CDN/remote JS. Chỉ dùng GSAP nếu user cho phép external dependency hoặc có local GSAP để inline.
+- `0%` và `100%` nên quay về pose gốc để loop mượt.
+
+## Verify
+
+```bash
+rg 'src=|href=|url\\(https?:|<img|<script' output.html
+```
+
+Lệnh trên không được trả về external asset/script. Sau đó render bằng Playwright hoặc browser và kiểm tra ảnh không bị đen đặc, lệch mask, mất lỗ trắng hoặc trùng ID.
+
