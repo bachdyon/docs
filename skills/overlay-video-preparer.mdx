@@ -1,0 +1,79 @@
+---
+title: "overlay-video-preparer"
+description: "Chuẩn bị video effect/overlay để phủ lên video khác, giữ màu và tránh halo đen"
+icon: "sparkles"
+---
+
+<Info>
+  **Skill ID**: `$overlay-video-preparer` · Source: `skills/overlay-video-preparer/SKILL.md`
+</Info>
+
+## Mục đích
+
+Chuẩn bị video overlay/effect như bụi sáng, cánh hoa, smoke, flare hoặc stock MP4 nền đen để compositing lên video khác. Skill này ưu tiên kiểm tra alpha thật trước, rồi chọn cách xử lý phù hợp để tránh mất màu hoặc tạo viền đen bẩn.
+
+## Nguyên tắc chính
+
+- Không giả định video có alpha. Luôn kiểm bằng `ffprobe` và `alphaextract`.
+- Nếu không có alpha thật, giữ nền đen và dùng `screen` blend thay vì key alpha.
+- Giữ fps nguồn theo mặc định; chỉ truyền `--fps` khi cần override theo composition.
+- Chuẩn hóa kích thước, `SAR 1:1`, H.264 MP4, bỏ audio/data/timecode stream.
+- Trong Remotion, dùng `OffthreadVideo`, `loop`, `playbackRate`, và `mixBlendMode: screen`.
+
+## Script
+
+```bash
+python3 skills/overlay-video-preparer/scripts/prepare_overlay_video.py \
+  /path/to/overlay.mp4 \
+  --output-dir jobs/<job_id>/remotion/public \
+  --width 1024 \
+  --height 1536
+```
+
+Override fps khi cần match composition:
+
+```bash
+python3 skills/overlay-video-preparer/scripts/prepare_overlay_video.py \
+  /path/to/overlay.mp4 \
+  --output-dir jobs/<job_id>/remotion/public \
+  --width 1024 \
+  --height 1536 \
+  --fps 30000/1001
+```
+
+## Output
+
+Script tạo:
+
+```text
+<input>_<width>x<height>_<fps>fps_overlay.mp4
+<input>_<width>x<height>_<fps>fps_overlay.mp4.json
+<input>_<width>x<height>_<fps>fps_overlay.preview.jpg
+```
+
+Report JSON ghi `has_real_alpha`, `target.fps`, `target.fps_source`, metadata input/output và snippet Remotion gợi ý.
+
+## Remotion snippet
+
+```tsx
+<OffthreadVideo
+  src={staticFile(petals_1024x1536_30fps_overlay.mp4)}
+  muted
+  loop
+  playbackRate={0.55}
+  style={{
+    position: absolute,
+    inset: 0,
+    width: 100%,
+    height: 100%,
+    objectFit: cover,
+    mixBlendMode: screen,
+    opacity: 0.6,
+    pointerEvents: none,
+  }}
+/>
+```
+
+## Showcase
+
+Xem ví dụ trong [Showcases](/showcases): **Video tâm linh — Ảnh AI + overlay bụi sáng/cánh hoa**.

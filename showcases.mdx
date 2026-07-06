@@ -409,6 +409,39 @@ icon: "clapperboard"
   </div>
 </div>
 
+
+## Video tâm linh — Ảnh AI + overlay bụi sáng/cánh hoa
+
+| Thuộc tính | Nội dung |
+| --- | --- |
+| **Định dạng** | 2:3 (1024×1536) · TikTok / Reels / Shorts — phù hợp video thiền, Phật giáo, quote tâm linh, nền tĩnh có hiệu ứng chuyển động chậm. |
+| **Skills** | [video-downloader](/skills/video-downloader) · [word-timestamps-extractor](/skills/word-timestamps-extractor) · [overlay-video-preparer](/skills/overlay-video-preparer) · [remotion-best-practices](https://github.com/remotion-dev/skills) |
+| **Điểm kỹ thuật** | Overlay stock không có alpha thật → giữ nền đen, chuẩn hóa để blend `screen`, dùng `OffthreadVideo`, `loop`, `playbackRate` chậm để giàu cảm xúc. |
+
+<div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "1rem",
+    alignItems: "flex-start",
+    marginTop: "1.25rem",
+  }}
+>
+  <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+    <video
+      controls
+      playsInline
+      width="100%"
+      style={{ borderRadius: 8, display: "block", aspectRatio: "2 / 3", objectFit: "cover", background: "#000" }}
+    >
+      <source
+        src="https://github.com/bachdyon/vas-showcases/raw/refs/heads/main/2026-07-05_001_buddha-poster-tiktok-voice/output/final_video.mp4"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+</div>
+
 ## Định dạng tiếp theo
 
 Khi có thêm loại video (ví dụ chỉ B-roll, toàn ảnh AI, tutorial dọc…), thêm một mục `## Tên định dạng — gợi nhớ ngắn` với cùng bộ: bảng thuộc tính + hàng player như trên.
